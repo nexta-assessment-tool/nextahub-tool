@@ -132,10 +132,10 @@ def genera_report_ai(punteggi, info, benchmark):
         {gap_testo}
         SERVIZI NEXTA: {SERVIZI_NEXTA}
 
-        STRUTTURA RICHIESTA (Sii estremamente prolisso, tecnico e descrittivo - puntiamo a 4 pagine di contenuto):
+        STRUTTURA RICHIESTA (Sii estremamente prolisso, tecnico e descrittivo):
         1. ANALISI DELLO STATO DELL'ARTE: Spiega perché l'azienda si trova in questa posizione rispetto al mercato.
         2. DETTAGLIO GAP PER AREA: Analizza ognuna delle 9 aree. Spiega cosa manca per raggiungere il benchmark e i rischi del non agire.
-        3. PIANO DI AZIONE NEXTAHUB (ROADMAP 24 MESI): Suggerisce quali servizi Nexta attivare subito e quali dopo.
+        3. PIANO DI AZIONE NEXTAHUB (ROADMAP 12-24 MESI): Suggerisce quali servizi Nexta attivare subito e quali dopo.
         4. VANTAGGIO COMPETITIVO: Come queste azioni trasformeranno l'azienda in un leader di settore.
         
         Usa un tono autorevole, linguaggio da alta consulenza e formatta in Markdown elegante.
