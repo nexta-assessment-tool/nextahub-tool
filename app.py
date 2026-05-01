@@ -3,19 +3,25 @@ import plotly.graph_objects as go
 import google.generativeai as genai
 from datetime import datetime
 
-# --- 1. CONFIGURAZIONE API E PAGINA ---
+# --- 1. CONFIGURAZIONE PAGINA E API ---
 st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
 
-# Caricamento della chiave con il nuovo nome coerente: GEMINI_API_KEY
-if "GEMINI_API_KEY" in st.secrets:
+def setup_gemini():
+    if "GEMINI_API_KEY" not in st.secrets:
+        st.error("⚠️ Configura 'GEMINI_API_KEY' nei Secrets di Streamlit.")
+        st.stop()
+    
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    
+    # Rilevamento automatico dei modelli disponibili
     try:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        available = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        return available
     except Exception as e:
-        st.error(f"Errore configurazione Gemini: {e}")
-else:
-    st.error("⚠️ Chiave non trovata! Assicurati di aver impostato 'GEMINI_API_KEY' nei Secrets di Streamlit.")
-    st.stop()
+        st.error(f"Errore connessione API: {e}")
+        return []
 
+modelli_disponibili = setup_gemini()
 LOGO_URL = "https://nextahub.it/wp-content/uploads/2026/02/Nexta_Logo_Def_PiccoloHUB.png"
 
 # --- 2. DATABASE BENCHMARK (17 SETTORI) ---
@@ -27,19 +33,19 @@ BENCHMARK_DATI = {
     "Metallurgia e Siderurgia": {"Strategia & Controllo": 3.2, "Digitalizzazione": 3.0, "Gestione HR": 3.1, "Finanza & Investimenti": 3.4, "Sostenibilità (ESG)": 2.8, "Protezione Legale": 3.6, "Sicurezza sul Lavoro": 4.8, "Standard & Qualità": 4.1, "Sviluppo Competenze": 3.0},
     "Automotive (Automobilistico)": {"Strategia & Controllo": 3.8, "Digitalizzazione": 4.2, "Gestione HR": 3.7, "Finanza & Investimenti": 3.5, "Sostenibilità (ESG)": 3.9, "Protezione Legale": 4.0, "Sicurezza sul Lavoro": 4.6, "Standard & Qualità": 4.8, "Sviluppo Competenze": 4.0},
     "Chimico e Farmaceutico": {"Strategia & Controllo": 3.9, "Digitalizzazione": 3.7, "Gestione HR": 3.8, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 4.2, "Protezione Legale": 4.5, "Sicurezza sul Lavoro": 4.9, "Standard & Qualità": 4.7, "Sviluppo Competenze": 3.9},
-    "Energia e Utilities (Gas, Luce, Acqua)": {"Strategia & Controllo": 4.0, "Digitalizzazione": 3.9, "Gestione HR": 3.8, "Finanza & Investimenti": 3.7, "Sostenibilità (ESG)": 4.5, "Protezione Legale": 4.2, "Sicurezza sul Lavoro": 4.7, "Standard & Qualità": 4.3, "Sviluppo Competenze": 3.8},
+    "Energia e Utilities": {"Strategia & Controllo": 4.0, "Digitalizzazione": 3.9, "Gestione HR": 3.8, "Finanza & Investimenti": 3.7, "Sostenibilità (ESG)": 4.5, "Protezione Legale": 4.2, "Sicurezza sul Lavoro": 4.7, "Standard & Qualità": 4.3, "Sviluppo Competenze": 3.8},
     "Costruzioni ed Edilizia": {"Strategia & Controllo": 2.8, "Digitalizzazione": 2.5, "Gestione HR": 2.9, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 2.7, "Protezione Legale": 3.4, "Sicurezza sul Lavoro": 4.7, "Standard & Qualità": 3.4, "Sviluppo Competenze": 2.8},
     "Elettronica ed Elettrotecnica": {"Strategia & Controllo": 3.7, "Digitalizzazione": 4.0, "Gestione HR": 3.5, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 3.4, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.0, "Standard & Qualità": 4.4, "Sviluppo Competenze": 3.9},
     "Gomma e Materie Plastiche": {"Strategia & Controllo": 3.2, "Digitalizzazione": 3.3, "Gestione HR": 3.1, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.0, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.4, "Standard & Qualità": 4.0, "Sviluppo Competenze": 3.1},
-    "Carta e Stampa (Packaging ed Editoria)": {"Strategia & Controllo": 3.4, "Digitalizzazione": 3.5, "Gestione HR": 3.2, "Finanza & Investimenti": 3.3, "Sostenibilità (ESG)": 3.6, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 4.1, "Sviluppo Competenze": 3.3},
-    "ICT e Digitale (Software e Tecnologie)": {"Strategia & Controllo": 4.0, "Digitalizzazione": 4.8, "Gestione HR": 4.2, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 3.5, "Protezione Legale": 4.0, "Sicurezza sul Lavoro": 3.0, "Standard & Qualità": 3.8, "Sviluppo Competenze": 4.5},
+    "Carta e Stampa": {"Strategia & Controllo": 3.4, "Digitalizzazione": 3.5, "Gestione HR": 3.2, "Finanza & Investimenti": 3.3, "Sostenibilità (ESG)": 3.6, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 4.1, "Sviluppo Competenze": 3.3},
+    "ICT e Digitale": {"Strategia & Controllo": 4.0, "Digitalizzazione": 4.8, "Gestione HR": 4.2, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 3.5, "Protezione Legale": 4.0, "Sicurezza sul Lavoro": 3.0, "Standard & Qualità": 3.8, "Sviluppo Competenze": 4.5},
     "Logistica e Trasporti": {"Strategia & Controllo": 3.2, "Digitalizzazione": 3.9, "Gestione HR": 3.1, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 3.3, "Protezione Legale": 3.7, "Sicurezza sul Lavoro": 4.4, "Standard & Qualità": 3.9, "Sviluppo Competenze": 3.2},
-    "Turismo e Ristorazione (Horeca)": {"Strategia & Controllo": 3.0, "Digitalizzazione": 3.4, "Gestione HR": 3.5, "Finanza & Investimenti": 2.8, "Sostenibilità (ESG)": 3.2, "Protezione Legale": 3.3, "Sicurezza sul Lavoro": 3.9, "Standard & Qualità": 3.7, "Sviluppo Competenze": 3.4},
+    "Turismo e Ristorazione": {"Strategia & Controllo": 3.0, "Digitalizzazione": 3.4, "Gestione HR": 3.5, "Finanza & Investimenti": 2.8, "Sostenibilità (ESG)": 3.2, "Protezione Legale": 3.3, "Sicurezza sul Lavoro": 3.9, "Standard & Qualità": 3.7, "Sviluppo Competenze": 3.4},
     "Bancario e Assicurativo": {"Strategia & Controllo": 4.2, "Digitalizzazione": 4.5, "Gestione HR": 4.0, "Finanza & Investimenti": 4.5, "Sostenibilità (ESG)": 4.1, "Protezione Legale": 4.8, "Sicurezza sul Lavoro": 3.5, "Standard & Qualità": 4.6, "Sviluppo Competenze": 4.2},
     "Sanità e Servizi Sociali": {"Strategia & Controllo": 3.8, "Digitalizzazione": 3.5, "Gestione HR": 4.1, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.7, "Protezione Legale": 4.4, "Sicurezza sul Lavoro": 4.5, "Standard & Qualità": 4.7, "Sviluppo Competenze": 3.8}
 }
 
-# --- 3. CATALOGO SERVIZI NEXTAHUB ---
+# --- 3. SERVIZI NEXTAHUB ---
 SERVIZI_NEXTA = {
     "Strategia & Controllo": "Dashboard KPI, Passaggio Generazionale, Temporary Management.",
     "Digitalizzazione": "Transizione 5.0, Cybersecurity, Integrazione AI.",
@@ -128,156 +134,158 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 5. AGENTE GEMINI (MULTI-MODELLO AUTO-ADATTIVO) ---
+# --- 5. LOGICA AI ---
 def genera_report_ai(punteggi, info, benchmark):
-    # Gemini prova i suoi motori migliori in sequenza
-    modelli_tentativo = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]
+    # Selezione dinamica del modello
+    order = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro"]
+    target_model = next((m for m in order if m in modelli_disponibili), None)
     
-    gap_testo = "\n".join([f"- {k}: Azienda {v:.2f}/5 (Benchmark {benchmark[k]}/5)" for k,v in punteggi.items()])
+    if not target_model:
+        return "❌ Nessun modello compatibile trovato. Controlla i permessi della tua API Key."
+
+    gap_details = "\n".join([f"- {k}: Azienda {v:.2f} (Benchmark {benchmark[k]})" for k,v in punteggi.items()])
     
     prompt = f"""
     Sei il Senior Partner di NextaHub. Crea un Report Strategico ANALISI GAP per {info['azienda']} ({info['settore']}).
-    DATI ASSESSMENT:
-    {gap_testo}
+    DATI:
+    {gap_details}
     
-    CATALOGO SERVIZI NEXTAHUB DA PROPORRE: {SERVIZI_NEXTA}
+    SERVIZI NEXTAHUB DISPONIBILI: {SERVIZI_NEXTA}
 
-    STRUTTURA DEL REPORT:
-    1. EXECUTIVE SUMMARY: Sintesi del posizionamento attuale.
-    2. ANALISI DEI GAP: Per ogni area, spiega il rischio di restare sotto il benchmark di settore.
-    3. ROADMAP STRATEGICA (24 MESI):
-       - Fase 1 (0-6m): Azioni urgenti.
-       - Fase 2 (6-18m): Consolidamento.
-       - Fase 3 (18-24m): Eccellenza.
-    4. CONCLUSIONI: Il valore aggiunto finale dell'intervento NextaHub.
+    IL REPORT DEVE INCLUDERE:
+    1. EXECUTIVE SUMMARY (Stile McKinsey)
+    2. ANALISI DEI GAP AREA PER AREA
+    3. ROADMAP 24 MESI (Fase Emergenza, Crescita, Leadership)
+    4. CONCLUSIONI E VANTAGGIO COMPETITIVO
     
-    Usa tabelle Markdown, un tono autorevole e professionale.
+    Usa tabelle Markdown e grassetto. Tono: Autorevole e propositivo.
     """
 
-    for nome in modelli_tentativo:
-        try:
-            model = genai.GenerativeModel(nome)
-            response = model.generate_content(prompt)
-            return response.text
-        except Exception:
-            continue
-            
-    return "⚠️ L'intelligenza Gemini non è riuscita a generare il report. Verifica la tua GEMINI_API_KEY."
+    try:
+        model = genai.GenerativeModel(target_model)
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"❌ Errore durante la generazione: {e}"
 
-# --- 6. LOGICA DI NAVIGAZIONE ---
+# --- 6. NAVIGAZIONE E STATO ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
 if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_piva' not in st.session_state: st.session_state.current_piva = None
 
+# Sidebar
 with st.sidebar:
-    st.image(LOGO_URL, width=200)
+    st.image(LOGO_URL, width=180)
     st.markdown("---")
-    if st.button("🏢 Anagrafica Cliente", use_container_width=True): st.session_state.page = "Anagrafica"
-    if st.button("📝 Esegui Assessment", use_container_width=True): st.session_state.page = "Questionario"
-    if st.button("📊 Report Strategico", use_container_width=True): st.session_state.page = "Valutazione"
-    if st.button("📁 Archivio Storico", use_container_width=True): st.session_state.page = "Archivio"
+    if st.button("🏢 Anagrafica Cliente"): st.session_state.page = "Anagrafica"
+    if st.button("📝 Esegui Assessment"): st.session_state.page = "Questionario"
+    if st.button("📊 Report Strategico"): st.session_state.page = "Valutazione"
+    if st.button("📁 Archivio"): st.session_state.page = "Archivio"
     st.markdown("---")
     if st.session_state.current_piva:
-        cl_info = st.session_state.clienti[st.session_state.current_piva]['info']
-        st.success(f"Dati di: {cl_info['azienda']}")
+        st.success(f"Attivo: {st.session_state.clienti[st.session_state.current_piva]['info']['azienda']}")
 
-# --- PAGINE ---
+# --- PAGINA: ANAGRAFICA ---
 if st.session_state.page == "Anagrafica":
-    st.title("🏢 Anagrafica Cliente")
-    with st.form("anag"):
+    st.title("🏢 Gestione Anagrafica")
+    with st.form("anag_form"):
         c1, c2 = st.columns(2)
         with c1:
             rs = st.text_input("Ragione Sociale")
             pi = st.text_input("P.IVA / Codice Univoco")
-            via = st.text_input("Indirizzo")
-            civ = st.text_input("Civico")
-        with c2:
-            cap = st.text_input("CAP")
-            com = st.text_input("Comune")
-            pr = st.text_input("Provincia (Sigla)")
             set_ = st.selectbox("Settore Business", list(BENCHMARK_DATI.keys()))
-        if st.form_submit_button("Apri Pratica"):
+        with c2:
+            comune = st.text_input("Comune")
+            mail = st.text_input("Email di contatto")
+        
+        if st.form_submit_button("Registra Cliente"):
             if rs and pi:
                 st.session_state.clienti[pi] = {
-                    "info": {"azienda": rs, "piva": pi, "settore": set_, "loc": f"{via} {civ}, {cap} {com} ({pr})"},
+                    "info": {"azienda": rs, "piva": pi, "settore": set_, "email": mail, "comune": comune},
                     "assessments": []
                 }
                 st.session_state.current_piva = pi
+                st.success(f"Fascicolo creato per {rs}")
                 st.session_state.page = "Questionario"
                 st.rerun()
             else:
-                st.error("Inserisci Ragione Sociale e P.IVA per procedere.")
+                st.error("Ragione Sociale e P.IVA sono campi obbligatori.")
 
+# --- PAGINA: QUESTIONARIO ---
 elif st.session_state.page == "Questionario":
     pi = st.session_state.current_piva
     if not pi:
-        st.warning("Torna in Anagrafica e seleziona un cliente.")
-        st.stop()
-    
-    st.title(f"📝 Assessment Digitale: {st.session_state.clienti[pi]['info']['azienda']}")
-    tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
-    current_results = {}
-    
-    for i, area in enumerate(DOMANDE_MATRICE.keys()):
-        with tabs[i]:
-            st.subheader(f"Parametri {area}")
-            scores = []
-            for j, (q, opts) in enumerate(DOMANDE_MATRICE[area]):
-                choice = st.radio(f"**{j+1}. {q}**", [1,2,3,4,5], 
-                                  format_func=lambda x: f"{x}: {opts[x-1]}", 
-                                  key=f"q_{pi}_{area}_{j}")
-                scores.append(choice)
-            current_results[area] = sum(scores) / 6
-            
-    if st.button("Salva e Analizza Risultati", use_container_width=True):
-        st.session_state.clienti[pi]['assessments'].append({
-            "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "punteggi": current_results,
-            "report_ai": ""
-        })
-        st.session_state.page = "Valutazione"
-        st.rerun()
+        st.warning("Seleziona o crea un cliente in Anagrafica.")
+    else:
+        st.title(f"📝 Assessment Digitale: {st.session_state.clienti[pi]['info']['azienda']}")
+        
+        tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
+        temp_scores = {}
+        
+        for i, area in enumerate(DOMANDE_MATRICE.keys()):
+            with tabs[i]:
+                st.subheader(f"Area {area}")
+                area_vals = []
+                for j, (domanda, opzioni) in enumerate(DOMANDE_MATRICE[area]):
+                    val = st.radio(f"**{j+1}. {domanda}**", 
+                                   options=[1,2,3,4,5], 
+                                   format_func=lambda x: f"{x}: {opzioni[x-1]}",
+                                   key=f"{pi}_{area}_{j}")
+                    area_vals.append(val)
+                temp_scores[area] = sum(area_vals) / len(area_vals)
+        
+        if st.button("Finalizza Assessment", use_container_width=True):
+            st.session_state.clienti[pi]['assessments'].append({
+                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "punteggi": temp_scores,
+                "report_ai": ""
+            })
+            st.session_state.page = "Valutazione"
+            st.rerun()
 
+# --- PAGINA: VALUTAZIONE ---
 elif st.session_state.page == "Valutazione":
     pi = st.session_state.current_piva
     if not pi or not st.session_state.clienti[pi]['assessments']:
-        st.warning("Completa prima il questionario.")
-        st.stop()
-        
-    cl = st.session_state.clienti[pi]
-    ass = cl['assessments'][-1]
-    bench = BENCHMARK_DATI[cl['info']['settore']]
-    
-    st.title(f"📊 Dashboard Strategica: {cl['info']['azienda']}")
-    
-    categories = list(ass['punteggi'].keys())
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Situazione Azienda', line_color='#E63946'))
-    fig.add_trace(go.Scatterpolar(r=[bench[k] for k in categories], theta=categories, name='Benchmark Settore', line_color='#1D3557', line_dash='dash'))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=600)
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("---")
-    st.subheader("🤖 Generatore di Strategia NextaHub (Powered by Gemini)")
-    
-    if not ass['report_ai']:
-        if st.button("✨ Genera Report con Intelligenza Artificiale", use_container_width=True):
-            with st.spinner("L'intelligenza Gemini sta elaborando la roadmap personalizzata..."):
-                ass['report_ai'] = genera_report_ai(ass['punteggi'], cl['info'], bench)
-                st.rerun()
+        st.warning("Completa l'assessment per visualizzare i risultati.")
     else:
-        st.markdown(ass['report_ai'])
-        st.download_button("📥 Scarica Report PDF (MD)", ass['report_ai'], file_name=f"Strategia_{cl['info']['azienda']}.md")
+        cl = st.session_state.clienti[pi]
+        ass = cl['assessments'][-1]
+        bench = BENCHMARK_DATI[cl['info']['settore']]
+        
+        st.title(f"📊 Risultati Analisi: {cl['info']['azienda']}")
+        
+        # Grafico Radar
+        categories = list(ass['punteggi'].keys())
+        fig = go.Figure()
+        fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='#E63946'))
+        fig.add_trace(go.Scatterpolar(r=[bench[k] for k in categories], theta=categories, name='Benchmark Settore', line_color='#1D3557', line_dash='dash'))
+        
+        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=600)
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("---")
+        st.subheader("🤖 Analisi Strategica Gemini AI")
+        
+        if not ass['report_ai']:
+            if st.button("🚀 Genera Report con AI", use_container_width=True):
+                with st.spinner("L'intelligenza artificiale sta elaborando il report..."):
+                    ass['report_ai'] = genera_report_ai(ass['punteggi'], cl['info'], bench)
+                    st.rerun()
+        else:
+            st.markdown(ass['report_ai'])
+            st.download_button("📥 Scarica Report", ass['report_ai'], file_name=f"Report_{cl['info']['azienda']}.md")
 
+# --- PAGINA: ARCHIVIO ---
 elif st.session_state.page == "Archivio":
-    st.title("📁 Archivio Storico Clienti")
+    st.title("📁 Archivio Clienti")
     if not st.session_state.clienti:
-        st.info("L'archivio è vuoto.")
+        st.info("Nessun dato salvato in sessione.")
     else:
         for p, d in st.session_state.clienti.items():
             with st.expander(f"🏢 {d['info']['azienda']} (P.IVA: {p})"):
                 for i, a in enumerate(d['assessments']):
-                    if st.button(f"Visualizza Analisi del {a['data']}", key=f"arch_{p}_{i}"):
+                    if st.button(f"Visualizza Assessment del {a['data']}", key=f"btn_{p}_{i}"):
                         st.session_state.current_piva = p
                         st.session_state.page = "Valutazione"
                         st.rerun()
