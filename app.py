@@ -130,34 +130,51 @@ DOMANDE_MATRICE = {
 # --- 5. AGENTE AI ---
 def genera_report_ai(punteggi, info, benchmark):
     try:
-        # Debug: check if model exists
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-        gap_testo = "\n".join([f"- {k}: Azienda {v}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
+        # Recuperiamo la lista dei modelli disponibili per la tua API Key
+        # In questo modo l'app si adatta a quello che Google ti permette di usare
+        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        
+        # Scegliamo il modello migliore disponibile (Flash se c'è, altrimenti Pro)
+        # Cerchiamo prima le versioni 1.5, poi le generiche
+        selected_model = None
+        for target in ['models/gemini-1.5-flash', 'models/gemini-1.5-pro', 'models/gemini-pro']:
+if target in available_models:
+                selected_model = target
+                break
+        
+if not selected_model:
+            selected_model = available_models[0] # Prendi il primo disponibile se non trova i preferiti
+
+        model = genai.GenerativeModel(selected_model)
+        
+        # --- LOGICA DEL PROMPT ---
+        gap_testo = "\n".join([f"- {k}: Azienda {v:.1f}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
         
         prompt = f"""
         Sei il Senior Partner di NextaHub. Crea un Report Strategico di ANALISI GAP professionale per {info['azienda']} (Settore: {info['settore']}).
-        DATI RILEVATI:
+        
+        DATI RILEVATI (Confronto Azienda vs Benchmark di Settore):
         {gap_testo}
         
         SERVIZI NEXTA DISPONIBILI: {SERVIZI_NEXTA}
 
-        REQUISITI DEL REPORT (ALMENO 2000 PAROLE):
-        1. EXECUTIVE SUMMARY: Analisi della situazione attuale rispetto ai competitor territoriali (area e regione).
-        2. ANALISI DETTAGLIATA PER AREA: Per ognuna delle 9 aree valutate, scrivi 3 paragrafi:
-           - Perché il gap rispetto al settore è critico.
-           - Quali rischi operativi e finanziari corre l'azienda oggi.
-           - Cosa succederebbe ignorando il problema.
+        REQUISITI DEL REPORT:
+        1. EXECUTIVE SUMMARY: Analisi della situazione attuale rispetto ai competitor.
+        2. ANALISI DETTAGLIATA PER AREA: Per ognuna delle 9 aree, scrivi:
+           - Criticità del gap rilevato.
+           - Rischi operativi e finanziari immediati.
+           - Conseguenze dell'inerzia.
         3. ROADMAP DI INTERVENTO NEXTAHUB (24 MESI):
            - FASE 1 (0-6 mesi): Emergenza e stabilità.
            - FASE 2 (6-18 mesi): Crescita e ottimizzazione.
            - FASE 3 (18-24 mesi): Leadership di mercato.
-        4. CONCLUSIONI: Il vantaggio competitivo finale ottenibile.
         
-        Usa un linguaggio da consulenza direzionale (McKinsey/BCG style), usa tabelle Markdown se necessario e sii estremamente descrittivo.
+        Usa un linguaggio da consulenza direzionale, tabelle Markdown e uno stile estremamente descrittivo e autorevole.
         """
         
         response = model.generate_content(prompt)
         return response.text
+
     except Exception as e:
         return f"⚠️ Errore Tecnico AI: {str(e)}"
 
