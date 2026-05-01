@@ -100,6 +100,14 @@ DOMANDE_MATRICE = {
         ("Sviluppo Leadership", ["Nessuna delega di leadership", "Solo il titolare prende decisioni chiave", "Manager formati alla gestione dei team", "Coaching individuale per le figure chiave", "Leadership diffusa a tutti i livelli aziendali"], None),
         ("Piani di Carriera", ["Nessun percorso di crescita previsto", "Progressioni basate solo sull'anzianità", "Criteri di crescita professionale definiti", "Percorsi di carriera chiari e documentati", "Meritocrazia basata su risultati misurabili"], None),
         ("Mindset e Innovazione", ["Forte resistenza a ogni cambiamento", "Timore verso le nuove tecnologie", "Presenza di pionieri dell'innovazione interni", "Cultura aziendale aperta al cambiamento", "L'innovazione è nel DNA di ogni collaboratore"], None)
+    ],
+    'Mercato & Vendite': [
+        ("Concentrazione Fatturato", ["Oltre il 50% del fatturato generato da un solo cliente", "Primi 3 clienti pesano per oltre il 70%", "Fatturato distribuito su 10-20 clienti principali", "Portafoglio clienti frazionato e bilanciato", "Mercato di massa o database clienti estremamente vasto"], None),
+        ("Presenza Internazionale", ["Solo mercato locale/provinciale", "Mercato nazionale", "Export reattivo (ordini passivi dall'estero)", "Presenza stabile in mercati esteri con rete vendita", "Multinazionale con sedi o partnership globali"], None),
+        ("Processo di Vendita", ["Passaparola e attesa del cliente", "Vendita reattiva su richiesta preventivi", "Rete commerciale attiva ma senza CRM", "Processo di vendita strutturato (Funnel) e monitorato", "Sales automation e gestione predittiva dei lead"], None),
+        ("Posizionamento Prezzo", ["Guerra dei prezzi (il cliente sceglie il più economico)", "Prezzi allineati alla media della concorrenza", "Prezzo basato sul costo più margine fisso", "Premium price basato sul valore riconosciuto", "Leader di mercato con potere di fissazione del prezzo"], None),
+        ("Canali di Acquisizione", ["Singolo canale (es. solo agenti)", "Due canali (es. agenti + fiera)", "Mix di canali offline (fiere, rete, segnalatori)", "Strategia multicanale (Offline + Online)", "Approccio Omnichannel integrato"], None),
+        ("Fedeltà del Cliente", ["Il cliente acquista una sola volta (Spot)", "Bassa fedeltà, alta sensibilità al prezzo", "Acquisti ricorrenti ma non contrattualizzati", "Contratti di fornitura pluriennali o abbonamenti", "Clienti 'Ambassador' coinvolti nello sviluppo prodotto"], None)
     ]
 }
 
