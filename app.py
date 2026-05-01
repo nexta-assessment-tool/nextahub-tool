@@ -8,13 +8,13 @@ st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
 st.write("Chiavi trovate nei Secrets:", list(st.secrets.keys()))
 
 # Sistema di caricamento sicuro della API Key
-if "GOOGLE_API_KEY" in st.secrets:
+if "GEMINI_API_KEY" in st.secrets:
     try:
-        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     except Exception as e:
         st.error(f"Errore configurazione Gemini: {e}")
 else:
-    st.error("⚠️ API Key non trovata! Configura 'GOOGLE_API_KEY' nei Secrets di Streamlit.")
+    st.error("⚠️ API Key non trovata! Configura 'GEMINI_API_KEY' nei Secrets di Streamlit.")
     st.stop() # Blocca l'esecuzione se la chiave manca
 
 LOGO_URL = "https://nextahub.it/wp-content/uploads/2026/02/Nexta_Logo_Def_PiccoloHUB.png"
