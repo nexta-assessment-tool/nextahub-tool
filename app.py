@@ -1,6 +1,13 @@
 import streamlit as st
 import plotly.graph_objects as go
+import google.generativeai as genai
 from datetime import datetime
+
+# --- CONFIGURAZIONE API GOOGLE GEMINI ---
+# Sostituisci con la tua API Key reale
+API_KEY = "LA_TUA_API_KEY_REALE" 
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="NextaHub Strategic Suite", layout="wide", initial_sidebar_state="expanded")
@@ -38,7 +45,7 @@ BENCHMARK_DATI = {
     "Sanità e Servizi Sociali": {"Strategia & Controllo": 3.8, "Digitalizzazione": 3.5, "Gestione HR": 4.0, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.7, "Protezione Legale": 4.2, "Sicurezza sul Lavoro": 4.6, "Standard & Qualità": 4.5, "Sviluppo Competenze": 3.9}
 }
 
-# --- MATRICE INTEGRALE 54 DOMANDE ---
+# --- MATRICE 54 DOMANDE ---
 DOMANDE_MATRICE = {
     'Strategia & Controllo': [
         ("Piano Strategico", ["Nessun piano", "Obiettivi verbali", "Budget annuale", "Piano triennale", "Piano dinamico trimestrale"]),
@@ -114,7 +121,17 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- STATO DELL'APPLICAZIONE ---
+SERVIZI_NEXTA = """
+1. FINANZA AGEVOLATA: Bandi regionali/nazionali, Credito d'imposta R&S, Transizione 5.0, Sabatini.
+2. PROTEZIONE LEGALE: Modello 231, Compliance GDPR, Tutela del Patrimonio, Contrattualistica.
+3. DIGITALIZZAZIONE: Software ERP/CRM, Cybersecurity, AI applicata ai processi.
+4. RISORSE UMANE: Piani di Welfare, Academy aziendale, Ricerca & Selezione.
+5. SOSTENIBILITÀ: Bilancio ESG, Certificazioni (Parità di Genere, ISO 14001).
+6. STRATEGIA & CONTROLLO: Dashboard KPI, Passaggio Generazionale, Temporary Management.
+7. SICUREZZA: DVR, Medicina del Lavoro, Formazione 81/08.
+"""
+
+# --- INIZIALIZZAZIONE ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
 if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_piva' not in st.session_state: st.session_state.current_piva = None
@@ -131,12 +148,12 @@ with st.sidebar:
     if st.button("📁 4. Archivio Storico", use_container_width=True): st.session_state.page = "Archivio"
     st.markdown("---")
     if st.session_state.current_piva:
-        st.info(f"Cliente: {st.session_state.current_piva}")
+        st.info(f"Stai lavorando su:\n{st.session_state.current_piva}")
 
 # --- PAGINA 1: ANAGRAFICA ---
 if st.session_state.page == "Anagrafica":
-    st.title("🏢 Setup Anagrafica Cliente")
-    with st.form("anag_full"):
+    st.title("🏢 Anagrafica Cliente")
+    with st.form("anag_form"):
         c1, c2 = st.columns(2)
         with c1:
             azienda = st.text_input("Ragione Sociale")
@@ -149,43 +166,48 @@ if st.session_state.page == "Anagrafica":
             regione = st.selectbox("Regione", ["Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna", "Friuli-Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche", "Molise", "Piemonte", "Puglia", "Sardegna", "Sicilia", "Toscana", "Trentino-Alto Adige", "Umbria", "Valle d'Aosta", "Veneto"])
             settore = st.selectbox("Settore", list(BENCHMARK_DATI.keys()))
         
-        if st.form_submit_button("Salva e Inizia"):
+        if st.form_submit_button("Salva e Procedi"):
             if azienda and piva:
                 st.session_state.current_piva = piva
-                st.session_state.clienti[piva] = {
-                    "info": {"azienda": azienda, "piva": piva, "indirizzo": indirizzo, "cap": cap, "citta": citta, "provincia": provincia, "regione": regione, "settore": settore},
-                    "assessments": []
-                }
+                if piva not in st.session_state.clienti:
+                    st.session_state.clienti[piva] = {
+                        "info": {"azienda": azienda, "piva": piva, "indirizzo": indirizzo, "cap": cap, "citta": citta, "provincia": provincia, "regione": regione, "settore": settore},
+                        "assessments": []
+                    }
                 st.session_state.page = "Questionario"
                 st.rerun()
             else:
-                st.error("Inserire Ragione Sociale e P.Iva.")
+                st.error("Ragione Sociale e P.IVA obbligatori.")
 
 # --- PAGINA 2: QUESTIONARIO ---
 elif st.session_state.page == "Questionario":
     piva = st.session_state.current_piva
-    if not piva: st.warning("Configura l'anagrafica."); st.stop()
+    if not piva: st.warning("Inserisci prima l'anagrafica."); st.stop()
     
     st.title(f"📝 Assessment: {st.session_state.clienti[piva]['info']['azienda']}")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
-    temp_scores = {}
+    responses = {}
 
     for i, area in enumerate(DOMANDE_MATRICE.keys()):
         with tabs[i]:
-            st.subheader(area)
-            area_vals = []
+            scores = []
             for j, (domanda, opzioni) in enumerate(DOMANDE_MATRICE[area]):
-                scelta = st.radio(f"**{j+1}. {domanda}**", options=[1, 2, 3, 4, 5], format_func=lambda x: f"{x} - {opzioni[x-1]}", key=f"{piva}_{area}_{j}")
-                area_vals.append(scelta)
-            temp_scores[area] = sum(area_vals) / 6
+                st.write(f"**{j+1}. {domanda}**")
+                scelta = st.radio(f"Seleziona per {domanda}", options=[1,2,3,4,5], format_func=lambda x: f"{x} - {opzioni[x-1]}", key=f"q_{piva}_{area}_{j}", label_visibility="collapsed")
+                scores.append(scelta)
+            responses[area] = sum(scores) / 6
 
-    if st.button("Finalizza Assessment", use_container_width=True):
-        nuovo = {"data": datetime.now().strftime("%d/%m/%Y %H:%M"), "punteggi": temp_scores, "analisi_ai": ""}
-        st.session_state.clienti[piva]['assessments'].append(nuovo)
+    if st.button("Finalizza e Genera Report", use_container_width=True):
+        nuovo_ass = {
+            "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "punteggi": responses,
+            "analisi_ai": ""
+        }
+        st.session_state.clienti[piva]['assessments'].append(nuovo_ass)
         st.session_state.page = "Valutazione"
         st.rerun()
 
-# --- PAGINA 3: VALUTAZIONE ---
+# --- PAGINA 3: VALUTAZIONE & AI ---
 elif st.session_state.page == "Valutazione":
     piva = st.session_state.current_piva
     if not piva or not st.session_state.clienti[piva]['assessments']: st.warning("Nessun dato."); st.stop()
@@ -193,47 +215,63 @@ elif st.session_state.page == "Valutazione":
     cl = st.session_state.clienti[piva]
     ass = cl['assessments'][-1]
     
-    # Header Stampa
-    c1, c2 = st.columns([1, 2])
-    with c1: st.image(LOGO_URL, width=200)
-    with c2:
-        st.markdown(f"## REPORT STRATEGICO\n**{cl['info']['azienda']}** | {cl['info']['citta']} ({cl['info']['provincia']})")
-        st.caption(f"Settore: {cl['info']['settore']} | Data: {ass['data']}")
+    # Header Report
+    col_l, col_r = st.columns([1, 2])
+    with col_l: st.image(LOGO_URL, width=200)
+    with col_r:
+        st.markdown(f"## REPORT STRATEGICO: {cl['info']['azienda']}")
+        st.write(f"**Sede:** {cl['info']['indirizzo']}, {cl['info']['cap']} {cl['info']['citta']} ({cl['info']['provincia']}) - {cl['info']['regione']}")
+        st.write(f"**Settore:** {cl['info']['settore']} | **Data:** {ass['data']}")
 
     # Radar
     categorie = list(ass['punteggi'].keys())
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categorie, fill='toself', name='Azienda', line_color='#e63946'))
     fig.add_trace(go.Scatterpolar(r=[BENCHMARK_DATI[cl['info']['settore']][c] for c in categorie], theta=categorie, name='Benchmark Settore', line_color='gray', line_dash='dash'))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=600)
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=500)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Analisi AI
     st.markdown("---")
-    st.subheader("🤖 Analisi Strategica Agente AI")
+    st.subheader("🤖 Analisi Agente AI NextaHub")
+    
     if not ass['analisi_ai']:
-        if st.button("Attiva Agente AI (Analisi Territoriale)"):
-            # Simulazione prompt AI
-            info = cl['info']
-            analisi = f"L'azienda operante a {info['citta']} nel settore {info['settore']} mostra un forte scostamento in {min(ass['punteggi'], key=ass['punteggi'].get)}. Data la posizione in {info['regione']}, si consiglia di monitorare i competitor locali e investire in digitalizzazione."
-            ass['analisi_ai'] = analisi
-            st.rerun()
+        if st.button("🪄 Genera Analisi Strategica AI"):
+            with st.spinner("L'Agente AI sta incrociando i dati territoriali con i servizi Nexta..."):
+                prompt = f"""
+                Agisci come Senior Partner di NextaHub. Analizza l'azienda {cl['info']['azienda']} ({cl['info']['settore']}) 
+                in {cl['info']['regione']}.
+                PUNTEGGI: {ass['punteggi']}
+                SERVIZI NEXTA: {SERVIZI_NEXTA}
+                
+                STRUTTURA ANALISI:
+                1. Analisi territoriale: collega il settore alla regione {cl['info']['regione']} e ai competitor.
+                2. Tabella Bisogno/Rischio/Servizio Nexta: per i 3 punteggi peggiori, indica il rischio reale e quale servizio Nexta lo risolve.
+                3. Conclusione: Roadmap operativa.
+                """
+                try:
+                    response = model.generate_content(prompt)
+                    ass['analisi_ai'] = response.text
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Errore API: {e}")
     else:
-        st.info(ass['analisi_ai'])
+        st.markdown(ass['analisi_ai'])
+        if st.button("🔄 Rigenera Analisi"):
+            ass['analisi_ai'] = ""
+            st.rerun()
 
 # --- PAGINA 4: ARCHIVIO ---
 elif st.session_state.page == "Archivio":
-    st.title("📁 Archivio Storico")
+    st.title("📁 Archivio Storico Analisi")
     if not st.session_state.clienti:
-        st.info("Nessun cliente in archivio.")
+        st.info("Nessuna analisi salvata.")
     else:
         for p, dati in st.session_state.clienti.items():
-            with st.expander(f"🏢 {dati['info']['azienda']} (PI: {p})"):
-                st.write(f"Sede: {dati['info']['regione']} | Settore: {dati['info']['settore']}")
+            with st.expander(f"🏢 {dati['info']['azienda']} (PI: {p}) - {dati['info']['regione']}"):
                 for i, revisione in enumerate(dati['assessments']):
-                    col_x, col_y = st.columns([4, 1])
-                    col_x.write(f"Analisi del {revisione['data']}")
-                    if col_y.button("Apri", key=f"open_{p}_{i}"):
+                    c_a, c_b = st.columns([4, 1])
+                    c_a.write(f"📅 Analisi del {revisione['data']}")
+                    if c_b.button("Apri", key=f"v_{p}_{i}"):
                         st.session_state.current_piva = p
                         st.session_state.page = "Valutazione"
                         st.rerun()
