@@ -108,27 +108,44 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 4. ENGINE AI ---
+# --- 4. ENGINE AI (FIXED FOR 2026 API) ---
 def analizza_con_gemini(dati_cliente, punteggi):
-    # Fix 2026: Rimosso prefisso models/ se causa 404, uso fallback
-    try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        gap_details = "\n".join([f"- {k}: {v:.1f}/5" for k,v in punteggi.items()])
-        
-        prompt = f"""
-        Sei il Senior Partner di NextaHub. Analisi per {dati_cliente['azienda']} ({dati_cliente['settore']}, {dati_cliente['regione']}).
-        Punteggi Aziendali: {gap_details}
-        
-        1. Genera un valore di BENCHMARK realistico (1-5) per ogni area basandoti su settore e regione.
-        2. Identifica i GAP critici.
-        3. Proponi soluzioni NextaHub (Welfare, 231, Transizione 5.0, Dashboard KPI, ecc.).
-        4. Crea una Roadmap Word-Ready con titoli e tabelle.
-        """
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Errore generazione: {str(e)}"
+    # Lista di tentativi con i nomi ufficiali completi
+    tentativi_modelli = [
+        "models/gemini-1.5-flash", 
+        "models/gemini-1.5-pro", 
+        "gemini-1.5-flash",
+        "gemini-pro"
+    ]
+    
+    gap_details = "\n".join([f"- {k}: {v:.1f}/5" for k,v in punteggi.items()])
+    
+    prompt = f"""
+    Sei il Senior Partner di NextaHub. Analisi strategica per {dati_cliente['azienda']}.
+    Settore: {dati_cliente['settore']} | Regione: {dati_cliente['regione']}
+    
+    DATI ASSESSMENT:
+    {gap_details}
+    
+    COMPITI:
+    1. Definisci un BENCHMARK realistico per il settore nella regione {dati_cliente['regione']}.
+    2. Identifica i GAP critici.
+    3. Proponi soluzioni NextaHub specifiche (Transizione 5.0, Certificazioni, Welfare, ecc.).
+    4. Crea una ROADMAP 24 mesi pronta per copia-incolla su Word.
+    """
+
+    for model_name in tentativi_modelli:
+        try:
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            if response.text:
+                return response.text
+        except Exception as e:
+            # Se questo modello fallisce, passa al prossimo della lista
+            ultimo_errore = str(e)
+            continue
+            
+    return f"❌ Errore critico: Nessun modello AI disponibile. Dettaglio: {ultimo_errore}"
 
 # --- 5. INTERFACCIA ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
