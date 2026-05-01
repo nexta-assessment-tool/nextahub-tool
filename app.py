@@ -189,8 +189,7 @@ if st.session_state.page == "Anagrafica":
             settore = st.selectbox("Settore Business", list(BENCHMARK_DATI.keys()))
             referente = st.text_input("Nome Referente Aziendale")
             dimensione = st.select_slider("Classe Dimensionale", options=["Micro", "Piccola", "Media", "Grande"])
-        
-      
+              
 if st.form_submit_button("Crea Fascicolo"):
     if rag_soc and p_iva:
         st.session_state.clienti[p_iva] = {
