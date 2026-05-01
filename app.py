@@ -72,36 +72,38 @@ if st.button("Genera Analisi Strategica NextaHub"):
         st.error("Chiave API non trovata! Inseriscila nei Secrets di Streamlit come GEMINI_API_KEY.")
     else:
         try:
-            # Configurazione IA
+            # Configurazione IA con l'ultima versione del modello
             genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel(model_name='gemini-1.5-flash-latest')
             
-            # PROMPT STRATEGICO (Il tuo metodo di vendita)
+            # PROMPT STRATEGICO BASATO SUI 20 ANNI DI ESPERIENZA NEXTA
             context = f"""
-            Sei il Senior Advisor di NextaHub con 20 anni di esperienza nella consulenza aziendale.
-            Analizza l'azienda {nome_azienda} ({settore}, {regione}).
+            Sei il Senior Advisor di NextaHub. Analizza l'azienda {nome_azienda} ({settore}, {regione}).
             
-            LOGICA DI ANALISI:
-            1. TRATTA GLI OBBLIGHI COME TALI: Se 'Protezione Legale' o 'Sicurezza' hanno score bassi, evidenzia le responsabilità civili/penali (GDPR, 231, 81/08).
-            2. LEVA ESG: Collega l'ESG a Certificazioni ISO, Welfare (Social) e Bilancio di Sostenibilità.
-            3. EFFICIENZA ENERGETICA: Se i costi sono alti, proponi l'Ingegnere Ambientale/Energy Manager di Nexta.
-            4. CROSS-SELLING FINANZIATO: Spiega come la Formazione Finanziata (es. Fondi Interpro o Bandi Lombardia) possa finanziare consulenze tecniche.
-            5. MODALITÀ DI ACQUISTO: Suggerisci esplicitamente se il cliente è adatto a:
-               - ENTRY (singola commessa)
-               - ELITE (canone mensile con tecnico/commerciale dedicato)
-               - FLEX (pacchetto prepagato a scalare).
-
-            FORMATO: Report professionale con punti chiave e Roadmap d'azione.
+            OBIETTIVI DELL'ANALISI:
+            1. TRADUZIONE DEI GAP: Trasforma ogni score basso in un servizio NextaHub (es. Protezione Legale bassa = Modello 231/GDPR).
+            2. CROSS-SELLING: Spiega come la 'Formazione Finanziata' (Fondi Interpro o bandi Lombardia) possa finanziare Certificazioni ISO o Welfare.
+            3. ESG & ENERGIA: Collega la sostenibilità al rating bancario e proponi l'Energy Manager Nexta per ridurre i costi.
+            4. MODELLO COMMERCIALE: Consiglia esplicitamente se proporre un contratto:
+               - ENTRY (Singolo intervento urgente)
+               - ELITE (Canone mensile, consulente dedicato)
+               - FLEX (Pacchetto ore/commesse a scalare).
+            
+            Tono: Autorevole, pratico, orientato alla vendita di valore.
             """
             
-            input_prompt = f"Dati Diagnostici: {dict(zip(CATEGORIES, scores))}. Note: {note_commerciale}"
+            input_prompt = f"Dati Diagnostici: {dict(zip(CATEGORIES, scores))}. Note Commerciale: {note_commerciale}"
             
-            with st.spinner("L'intelligenza artificiale NextaHub sta elaborando la strategia..."):
+            with st.spinner("L'AI di NextaHub sta generando il report..."):
                 response = model.generate_content(context + "\n\n" + input_prompt)
-                st.success("Analisi Completata con Successo!")
-                st.markdown(response.text)
                 
-                st.download_button("Scarica Testo Report", response.text, file_name=f"Report_{nome_azienda}.txt")
-                
+                if response:
+                    st.success("Analisi Completata!")
+                    st.markdown(response.text)
+                    st.download_button("Scarica Report", response.text, file_name=f"Report_Nexta_{nome_azienda}.txt")
+                else:
+                    st.error("Risposta vuota dall'IA. Riprova.")
+                    
         except Exception as e:
-            st.error(f"Errore tecnico durante la generazione: {str(e)}")
+            st.error(f"Errore tecnico: {str(e)}")
+            st.info("Suggerimento: Controlla che la chiave API nei Secrets sia corretta e non abbia spazi.")
