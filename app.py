@@ -4,7 +4,7 @@ import google.generativeai as genai
 from datetime import datetime
 
 # --- 1. CONFIGURAZIONE ---
-API_KEY = "IL_TUO_CODICE_API_QUI" # Sostituisci con la tua chiave
+API_KEY = "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg"
 LOGO_URL = "https://www.nextahub.it/wp-content/uploads/2023/05/logo-nextahub.png"
 
 st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
