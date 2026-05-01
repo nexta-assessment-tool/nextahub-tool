@@ -6,15 +6,15 @@ from datetime import datetime
 # --- 1. CONFIGURAZIONE API E PAGINA ---
 st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
 
-# Sistema di caricamento sicuro della API Key
+# Caricamento della chiave con il nuovo nome coerente: GEMINI_API_KEY
 if "GEMINI_API_KEY" in st.secrets:
     try:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     except Exception as e:
         st.error(f"Errore configurazione Gemini: {e}")
 else:
-    st.error("⚠️ API Key non trovata! Configura 'GEMINI_API_KEY' nei Secrets di Streamlit.")
-    st.stop() # Blocca l'esecuzione se la chiave manca
+    st.error("⚠️ Chiave non trovata! Assicurati di aver impostato 'GEMINI_API_KEY' nei Secrets di Streamlit.")
+    st.stop()
 
 LOGO_URL = "https://nextahub.it/wp-content/uploads/2026/02/Nexta_Logo_Def_PiccoloHUB.png"
 
@@ -128,55 +128,47 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 5. AGENTE AI AGNOSTICO ---
+# --- 5. AGENTE GEMINI (MULTI-MODELLO AUTO-ADATTIVO) ---
 def genera_report_ai(punteggi, info, benchmark):
-    try:
-        available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        
-        selected_model = "models/gemini-pro" 
-        for target in ["models/gemini-1.5-flash", "models/gemini-1.5-pro"]:
-            if target in available_models:
-                selected_model = target
-                break
-        
-        model = genai.GenerativeModel(selected_model)
-        
-        gap_testo = "\n".join([f"- {k}: Azienda {v:.2f}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
-        
-        prompt = f"""
-        Sei il Senior Partner di NextaHub. Crea un Report Strategico di ANALISI GAP professionale per {info['azienda']} (Settore: {info['settore']}).
-        
-        DATI RILEVATI:
-        {gap_testo}
-        
-        SERVIZI NEXTA DISPONIBILI: {SERVIZI_NEXTA}
+    # Gemini prova i suoi motori migliori in sequenza
+    modelli_tentativo = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]
+    
+    gap_testo = "\n".join([f"- {k}: Azienda {v:.2f}/5 (Benchmark {benchmark[k]}/5)" for k,v in punteggi.items()])
+    
+    prompt = f"""
+    Sei il Senior Partner di NextaHub. Crea un Report Strategico ANALISI GAP per {info['azienda']} ({info['settore']}).
+    DATI ASSESSMENT:
+    {gap_testo}
+    
+    CATALOGO SERVIZI NEXTAHUB DA PROPORRE: {SERVIZI_NEXTA}
 
-        REQUISITI DEL REPORT:
-        1. EXECUTIVE SUMMARY: Analisi della situazione attuale rispetto ai competitor territoriali.
-        2. ANALISI DETTAGLIATA PER AREA: Per ognuna delle 9 aree valutate, scrivi:
-           - Perché il gap rispetto al settore è critico.
-           - Quali rischi operativi e finanziari corre l'azienda oggi.
-           - Cosa succederebbe ignorando il problema.
-        3. ROADMAP DI INTERVENTO NEXTAHUB (24 MESI):
-           - FASE 1 (0-6 mesi): Emergenza e stabilità.
-           - FASE 2 (6-18 mesi): Crescita e ottimizzazione.
-           - FASE 3 (18-24 mesi): Leadership di mercato.
-        4. CONCLUSIONI: Il vantaggio competitivo finale ottenibile.
-        
-        Usa un linguaggio da consulenza direzionale, usa tabelle Markdown e sii estremamente descrittivo.
-        """
-        
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"⚠️ Errore Tecnico AI: {str(e)}"
+    STRUTTURA DEL REPORT:
+    1. EXECUTIVE SUMMARY: Sintesi del posizionamento attuale.
+    2. ANALISI DEI GAP: Per ogni area, spiega il rischio di restare sotto il benchmark di settore.
+    3. ROADMAP STRATEGICA (24 MESI):
+       - Fase 1 (0-6m): Azioni urgenti.
+       - Fase 2 (6-18m): Consolidamento.
+       - Fase 3 (18-24m): Eccellenza.
+    4. CONCLUSIONI: Il valore aggiunto finale dell'intervento NextaHub.
+    
+    Usa tabelle Markdown, un tono autorevole e professionale.
+    """
 
-# --- 6. LOGICA APP ---
+    for nome in modelli_tentativo:
+        try:
+            model = genai.GenerativeModel(nome)
+            response = model.generate_content(prompt)
+            return response.text
+        except Exception:
+            continue
+            
+    return "⚠️ L'intelligenza Gemini non è riuscita a generare il report. Verifica la tua GEMINI_API_KEY."
+
+# --- 6. LOGICA DI NAVIGAZIONE ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
 if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_piva' not in st.session_state: st.session_state.current_piva = None
 
-# --- SIDEBAR ---
 with st.sidebar:
     st.image(LOGO_URL, width=200)
     st.markdown("---")
@@ -187,7 +179,7 @@ with st.sidebar:
     st.markdown("---")
     if st.session_state.current_piva:
         cl_info = st.session_state.clienti[st.session_state.current_piva]['info']
-        st.success(f"Attivo: {cl_info['azienda']}")
+        st.success(f"Dati di: {cl_info['azienda']}")
 
 # --- PAGINE ---
 if st.session_state.page == "Anagrafica":
@@ -204,7 +196,7 @@ if st.session_state.page == "Anagrafica":
             com = st.text_input("Comune")
             pr = st.text_input("Provincia (Sigla)")
             set_ = st.selectbox("Settore Business", list(BENCHMARK_DATI.keys()))
-        if st.form_submit_button("Crea Fascicolo"):
+        if st.form_submit_button("Apri Pratica"):
             if rs and pi:
                 st.session_state.clienti[pi] = {
                     "info": {"azienda": rs, "piva": pi, "settore": set_, "loc": f"{via} {civ}, {cap} {com} ({pr})"},
@@ -214,21 +206,21 @@ if st.session_state.page == "Anagrafica":
                 st.session_state.page = "Questionario"
                 st.rerun()
             else:
-                st.error("Ragione Sociale e P.IVA obbligatori.")
+                st.error("Inserisci Ragione Sociale e P.IVA per procedere.")
 
 elif st.session_state.page == "Questionario":
     pi = st.session_state.current_piva
     if not pi:
-        st.warning("Seleziona un cliente in Anagrafica.")
+        st.warning("Torna in Anagrafica e seleziona un cliente.")
         st.stop()
     
-    st.title(f"📝 Assessment: {st.session_state.clienti[pi]['info']['azienda']}")
+    st.title(f"📝 Assessment Digitale: {st.session_state.clienti[pi]['info']['azienda']}")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
     current_results = {}
     
     for i, area in enumerate(DOMANDE_MATRICE.keys()):
         with tabs[i]:
-            st.subheader(f"Area {area}")
+            st.subheader(f"Parametri {area}")
             scores = []
             for j, (q, opts) in enumerate(DOMANDE_MATRICE[area]):
                 choice = st.radio(f"**{j+1}. {q}**", [1,2,3,4,5], 
@@ -237,7 +229,7 @@ elif st.session_state.page == "Questionario":
                 scores.append(choice)
             current_results[area] = sum(scores) / 6
             
-    if st.button("Finalizza Assessment", use_container_width=True):
+    if st.button("Salva e Analizza Risultati", use_container_width=True):
         st.session_state.clienti[pi]['assessments'].append({
             "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
             "punteggi": current_results,
@@ -249,46 +241,43 @@ elif st.session_state.page == "Questionario":
 elif st.session_state.page == "Valutazione":
     pi = st.session_state.current_piva
     if not pi or not st.session_state.clienti[pi]['assessments']:
-        st.warning("Esegui prima un assessment.")
+        st.warning("Completa prima il questionario.")
         st.stop()
         
     cl = st.session_state.clienti[pi]
     ass = cl['assessments'][-1]
     bench = BENCHMARK_DATI[cl['info']['settore']]
     
-    st.title(f"📊 Report Strategico: {cl['info']['azienda']}")
-    st.caption(f"📍 Sede: {cl['info']['loc']} | 📅 Analisi del: {ass['data']}")
+    st.title(f"📊 Dashboard Strategica: {cl['info']['azienda']}")
     
     categories = list(ass['punteggi'].keys())
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='#E63946'))
+    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Situazione Azienda', line_color='#E63946'))
     fig.add_trace(go.Scatterpolar(r=[bench[k] for k in categories], theta=categories, name='Benchmark Settore', line_color='#1D3557', line_dash='dash'))
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=600)
     st.plotly_chart(fig, use_container_width=True)
     
     st.markdown("---")
-    st.subheader("🤖 Analisi Approfondita Agente AI")
+    st.subheader("🤖 Generatore di Strategia NextaHub (Powered by Gemini)")
     
     if not ass['report_ai']:
-        if st.button("🚀 Genera Report NextaHub (AI)", use_container_width=True):
-            with st.spinner("L'AI sta analizzando i dati e scrivendo il report..."):
+        if st.button("✨ Genera Report con Intelligenza Artificiale", use_container_width=True):
+            with st.spinner("L'intelligenza Gemini sta elaborando la roadmap personalizzata..."):
                 ass['report_ai'] = genera_report_ai(ass['punteggi'], cl['info'], bench)
                 st.rerun()
     else:
         st.markdown(ass['report_ai'])
-        st.download_button("📥 Scarica Report (MD)", ass['report_ai'], file_name=f"Report_{cl['info']['azienda']}.md")
+        st.download_button("📥 Scarica Report PDF (MD)", ass['report_ai'], file_name=f"Strategia_{cl['info']['azienda']}.md")
 
 elif st.session_state.page == "Archivio":
-    st.title("📁 Archivio Storico")
+    st.title("📁 Archivio Storico Clienti")
     if not st.session_state.clienti:
-        st.info("Nessun cliente in archivio.")
+        st.info("L'archivio è vuoto.")
     else:
         for p, d in st.session_state.clienti.items():
             with st.expander(f"🏢 {d['info']['azienda']} (P.IVA: {p})"):
-                st.write(f"**Settore:** {d['info']['settore']}")
-                st.write(f"**Indirizzo:** {d['info']['loc']}")
                 for i, a in enumerate(d['assessments']):
-                    if st.button(f"Visualizza Report {a['data']}", key=f"arch_{p}_{i}"):
+                    if st.button(f"Visualizza Analisi del {a['data']}", key=f"arch_{p}_{i}"):
                         st.session_state.current_piva = p
                         st.session_state.page = "Valutazione"
                         st.rerun()
