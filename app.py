@@ -120,14 +120,14 @@ def genera_consulenza_nexta(punteggi, info_azienda):
     peggiori = sorted(punteggi.items(), key=lambda x: x[1])[:3]
     
     prompt = f"""
-    Agisci come Senior Partner di Nexta. Analizza l'azienda {info_azienda['azienda']} del settore {info_azienda['settore']} situata in {info_azienda['regione']}.
+    Agisci come Senior Partner di NextaHub. Analizza l'azienda {info_azienda['azienda']} del settore {info_azienda['settore']} situata in {info_azienda['regione']}.
     Punteggi medi ottenuti (scala 1-5): {punteggi}.
     Aree critiche rilevate: {peggiori}.
-    Catalogo Servizi Nexta: {SERVIZI_NEXTA}.
+    Catalogo Servizi NextaHub: {SERVIZI_NEXTA}.
     
     Genera un report consulenziale che:
     1. Spieghi il rischio specifico per il settore {info_azienda['settore']} nell'avere punteggi bassi in {peggiori[0][0]}.
-    2. Colleghi ogni area critica a uno specifico servizio Nexta.
+    2. Colleghi ogni area critica a uno specifico servizio NextaHub.
     3. Definisca una roadmap di 6 mesi.
     Usa un tono autorevole, diretto e formattazione Markdown professionale.
     """
@@ -139,12 +139,12 @@ def genera_consulenza_nexta(punteggi, info_azienda):
         return response.text
     except Exception as e:
         # LOGICA DI BACKUP: Analisi "Simulata" ma accurata
-        analisi_backup = f"## 🎯 Piano d'Azione Strategico Nexta\n\n"
+        analisi_backup = f"## 🎯 Piano d'Azione Strategico NextaHub\n\n"
         analisi_backup += f"Gentile Direzione di **{info_azienda['azienda']}**, l'analisi evidenzia una necessità prioritaria di intervento nelle seguenti aree:\n\n"
         for area, score in peggiori:
             analisi_backup += f"### 🔴 AREA: {area} (Rating: {score:.1f}/5)\n"
             analisi_backup += f"- **Rischio Rilevato:** La carenza in questa funzione impatta direttamente sulla marginalità del settore {info_azienda['settore']}.\n"
-            analisi_backup += f"- **Soluzione Nexta:** {SERVIZI_NEXTA.get(area, 'Consulenza specialistica dedicata.')}\n\n"
+            analisi_backup += f"- **Soluzione NextaHub:** {SERVIZI_NEXTA.get(area, 'Consulenza specialistica dedicata.')}\n\n"
         analisi_backup += "--- \n*Nota: Connessione AI non disponibile. Analisi basata su logica predefinita NextaHub.*"
         return analisi_backup
 
