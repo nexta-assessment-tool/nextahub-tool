@@ -292,24 +292,55 @@ elif st.session_state.page == "Valutazione":
 
 # PAGINA 4: ARCHIVIO (Ripesca, Ricarica e Confronta)
 elif st.session_state.page == "Archivio":
-    st.title("🗄️ Archivio Valutazioni NextaHub")
+    st.title("🗄️ Archivio & Gestione CRM NextaHub")
+    
     if not st.session_state.db_clienti:
-        st.info("Nessuna valutazione in archivio.")
+        st.info("Nessun cliente in archivio. Inizia creando una nuova anagrafica.")
     else:
         for piva, dati in st.session_state.db_clienti.items():
-            with st.expander(f"🏢 {dati['info']['azienda']} (P.IVA: {piva})"):
-                st.write(f"**Referente Nexta:** {dati['info']['commerciale']}")
-                for idx, sessione in enumerate(dati['storia']):
-                    c1, c2 = st.columns([3, 1])
-                    c1.write(f"📅 Valutazione del {sessione['data']}")
-                    if c2.button(f"🔎 Visualizza Report", key=f"view_{piva}_{idx}"):
-                        # Spostiamo l'assessment selezionato in fondo per farlo vedere come "ultimo"
-                        selected = dati['storia'].pop(idx)
-                        dati['storia'].append(selected)
-                        st.session_state.current_piva = piva
-                        st.session_state.page = "Valutazione"
-                        st.rerun()
-                if st.button(f"➕ Nuova Analisi per questo cliente", key=f"new_an_{piva}"):
+            # Il titolo dell'expander mostra il nome azienda e la P.IVA
+            with st.expander(f"🏢 {dati['info']['azienda']} - P.IVA: {piva}"):
+                
+                # Layout a colonne per le azioni rapide
+                col_btn1, col_btn2, col_btn3 = st.columns(3)
+                
+                # 1. Tasto per visualizzare i dati anagrafici (il tuo "CRM portatile")
+                if col_btn1.button(f"📋 Dati Anagrafici", key=f"anag_{piva}"):
+                    st.success(f"Scheda Anagrafica di {dati['info']['azienda']}")
+                    # Visualizzazione pulita dei dati
+                    info = dati['info']
+                    st.write(f"**Legale Rappresentante:** {info.get('legale', 'N/D')}")
+                    st.write(f"**PEC:** {info.get('pec', 'N/D')}")
+                    st.write(f"**Settore:** {info.get('settore', 'N/D')} (ATECO: {info.get('ateco', 'N/D')})")
+                    st.write(f"**Dimensioni:** {info.get('fatturato', 'N/D')} | {info.get('dipendenti', 0)} dipendenti")
+                    st.write(f"**Contatto:** {info.get('tel', 'N/D')} | {info.get('mail', 'N/D')}")
+                    st.write(f"**Analista Nexta:** {info.get('commerciale', 'N/D')}")
+                
+                # 2. Tasto per rilanciare un nuovo assessment per lo stesso cliente
+                if col_btn2.button(f"➕ Nuova Analisi", key=f"new_an_{piva}"):
                     st.session_state.current_piva = piva
                     st.session_state.page = "Questionario"
                     st.rerun()
+                
+                # 3. Tasto per eliminare l'intero record (con cautela)
+                if col_btn3.button(f"🗑️ Elimina Record", key=f"del_{piva}"):
+                    del st.session_state.db_clienti[piva]
+                    st.rerun()
+
+                st.markdown("---")
+                st.subheader("Storico Assessment Strategici")
+                
+                # Elenca tutte le sessioni fatte per questo cliente
+                if not dati['storia']:
+                    st.write("Nessuna analisi ancora completata.")
+                else:
+                    for idx, sessione in enumerate(dati['storia']):
+                        c1, c2 = st.columns([4, 1])
+                        c1.write(f"📅 **Sessione del {sessione['data']}**")
+                        if c2.button(f"Apri Report", key=f"view_{piva}_{idx}"):
+                            # Carichiamo la sessione scelta come "ultima" per visualizzarla in Pagina 3
+                            selected = dati['storia'].pop(idx)
+                            dati['storia'].append(selected)
+                            st.session_state.current_piva = piva
+                            st.session_state.page = "Valutazione"
+                            st.rerun()
