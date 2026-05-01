@@ -3,15 +3,14 @@ import plotly.graph_objects as go
 import google.generativeai as genai
 from datetime import datetime
 
-# --- 1. CONFIGURAZIONE API ---
-# Inserisci la tua API Key qui sotto
+# --- 1. CONFIGURAZIONE API E PAGINA ---
+# Si consiglia di usare st.secrets per la produzione
 API_KEY = "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg"
 
-if API_KEY and API_KEY != "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg":
-    try:
-        genai.configure(api_key=API_KEY)
-    except Exception as e:
-        st.error(f"Errore configurazione Gemini: {e}")
+try:
+    genai.configure(api_key=API_KEY)
+except Exception as e:
+    st.error(f"Errore configurazione Gemini: {e}")
 
 LOGO_URL = "https://nextahub.it/wp-content/uploads/2026/02/Nexta_Logo_Def_PiccoloHUB.png"
 
@@ -127,54 +126,48 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 5. AGENTE AI ---
+# --- 5. AGENTE AI AGNOSTICO ---
 def genera_report_ai(punteggi, info, benchmark):
     try:
-        # Recuperiamo la lista dei modelli disponibili per la tua API Key
-        # In questo modo l'app si adatta a quello che Google ti permette di usare
+        # Recupera modelli disponibili per evitare errori 404
         available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
         
-        # Scegliamo il modello migliore disponibile (Flash se c'è, altrimenti Pro)
-        # Cerchiamo prima le versioni 1.5, poi le generiche
-        selected_model = None
-        for target in ['models/gemini-1.5-flash', 'models/gemini-1.5-pro', 'models/gemini-pro']:
-if target in available_models:
+        # Selezione gerarchica del modello
+        selected_model = "models/gemini-pro" # Default sicuro
+        for target in ["models/gemini-1.5-flash", "models/gemini-1.5-pro"]:
+            if target in available_models:
                 selected_model = target
                 break
         
-if not selected_model:
-            selected_model = available_models[0] # Prendi il primo disponibile se non trova i preferiti
-
         model = genai.GenerativeModel(selected_model)
         
-        # --- LOGICA DEL PROMPT ---
-        gap_testo = "\n".join([f"- {k}: Azienda {v:.1f}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
+        gap_testo = "\n".join([f"- {k}: Azienda {v:.2f}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
         
         prompt = f"""
         Sei il Senior Partner di NextaHub. Crea un Report Strategico di ANALISI GAP professionale per {info['azienda']} (Settore: {info['settore']}).
         
-        DATI RILEVATI (Confronto Azienda vs Benchmark di Settore):
+        DATI RILEVATI:
         {gap_testo}
         
         SERVIZI NEXTA DISPONIBILI: {SERVIZI_NEXTA}
 
         REQUISITI DEL REPORT:
-        1. EXECUTIVE SUMMARY: Analisi della situazione attuale rispetto ai competitor.
-        2. ANALISI DETTAGLIATA PER AREA: Per ognuna delle 9 aree, scrivi:
-           - Criticità del gap rilevato.
-           - Rischi operativi e finanziari immediati.
-           - Conseguenze dell'inerzia.
+        1. EXECUTIVE SUMMARY: Analisi della situazione attuale rispetto ai competitor territoriali.
+        2. ANALISI DETTAGLIATA PER AREA: Per ognuna delle 9 aree valutate, scrivi:
+           - Perché il gap rispetto al settore è critico.
+           - Quali rischi operativi e finanziari corre l'azienda oggi.
+           - Cosa succederebbe ignorando il problema.
         3. ROADMAP DI INTERVENTO NEXTAHUB (24 MESI):
            - FASE 1 (0-6 mesi): Emergenza e stabilità.
            - FASE 2 (6-18 mesi): Crescita e ottimizzazione.
            - FASE 3 (18-24 mesi): Leadership di mercato.
+        4. CONCLUSIONI: Il vantaggio competitivo finale ottenibile.
         
-        Usa un linguaggio da consulenza direzionale, tabelle Markdown e uno stile estremamente descrittivo e autorevole.
+        Usa un linguaggio da consulenza direzionale, usa tabelle Markdown e sii estremamente descrittivo.
         """
         
         response = model.generate_content(prompt)
         return response.text
-
     except Exception as e:
         return f"⚠️ Errore Tecnico AI: {str(e)}"
 
@@ -225,7 +218,9 @@ if st.session_state.page == "Anagrafica":
 
 elif st.session_state.page == "Questionario":
     pi = st.session_state.current_piva
-    if not pi: st.warning("Seleziona un cliente in Anagrafica."); st.stop()
+    if not pi:
+        st.warning("Seleziona un cliente in Anagrafica.")
+        st.stop()
     
     st.title(f"📝 Assessment: {st.session_state.clienti[pi]['info']['azienda']}")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
@@ -254,7 +249,8 @@ elif st.session_state.page == "Questionario":
 elif st.session_state.page == "Valutazione":
     pi = st.session_state.current_piva
     if not pi or not st.session_state.clienti[pi]['assessments']:
-        st.warning("Esegui prima un assessment."); st.stop()
+        st.warning("Esegui prima un assessment.")
+        st.stop()
         
     cl = st.session_state.clienti[pi]
     ass = cl['assessments'][-1]
@@ -263,7 +259,6 @@ elif st.session_state.page == "Valutazione":
     st.title(f"📊 Report Strategico: {cl['info']['azienda']}")
     st.caption(f"📍 Sede: {cl['info']['loc']} | 📅 Analisi del: {ass['data']}")
     
-    # Radar Chart
     categories = list(ass['punteggi'].keys())
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='#E63946'))
