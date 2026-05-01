@@ -131,7 +131,7 @@ DOMANDE_MATRICE = {
 def genera_report_ai(punteggi, info, benchmark):
     try:
         # Debug: check if model exists
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
         gap_testo = "\n".join([f"- {k}: Azienda {v}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
         
         prompt = f"""
