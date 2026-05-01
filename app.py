@@ -2,18 +2,12 @@ import streamlit as st
 import plotly.graph_objects as go
 import google.generativeai as genai
 from datetime import datetime
-import pandas as pd
 
-# --- 1. CONFIGURAZIONE DI SISTEMA ---
-# Inserisci qui la tua chiave API di Google Gemini
-API_KEY = "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg"
+# --- 1. CONFIGURAZIONE ---
+API_KEY = "IL_TUO_CODICE_API_QUI" # Sostituisci con la tua chiave
 LOGO_URL = "https://www.nextahub.it/wp-content/uploads/2023/05/logo-nextahub.png"
 
-st.set_page_config(
-    page_title="NextaHub Strategic Suite v3.0",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
 
 # --- 2. DATABASE BENCHMARK (17 SETTORI) ---
 BENCHMARK_DATI = {
@@ -38,228 +32,201 @@ BENCHMARK_DATI = {
 
 # --- 3. CATALOGO SERVIZI NEXTAHUB ---
 SERVIZI_NEXTA = {
-    "Strategia & Controllo": "Dashboard KPI, Passaggio Generazionale, Temporary Management e Revisione Processi.",
-    "Digitalizzazione": "Piano Transizione 5.0, Cybersecurity, E-commerce e Integrazione AI.",
-    "Gestione HR": "Welfare Aziendale, Academy, Sistemi di MBO e Ricerca/Selezione profili executive.",
-    "Finanza & Investimenti": "Scouting Finanza Agevolata, Rating Bancario e Ottimizzazione Tesoreria.",
-    "Sostenibilità (ESG)": "Redazione Bilancio Sostenibilità e Certificazione Parità di Genere.",
-    "Protezione Legale": "Modello 231, Compliance GDPR e Asset Protection.",
-    "Sicurezza sul Lavoro": "DVR Dinamico, Medicina del Lavoro e Formazione Finanziata.",
-    "Standard & Qualità": "Certificazioni ISO e Audit di qualità sulla filiera.",
-    "Sviluppo Competenze": "Fondi Interprofessionali, Coaching Manageriale e Reskilling."
+    "Strategia & Controllo": "Dashboard KPI, Passaggio Generazionale, Temporary Management.",
+    "Digitalizzazione": "Transizione 5.0, Cybersecurity, Integrazione AI.",
+    "Gestione HR": "Welfare Aziendale, Academy, Sistemi MBO.",
+    "Finanza & Investimenti": "Finanza Agevolata, Rating Bancario, Crediti d'imposta.",
+    "Sostenibilità (ESG)": "Bilancio di Sostenibilità, Certificazione Parità di Genere.",
+    "Protezione Legale": "Modello 231, Compliance GDPR, Asset Protection.",
+    "Sicurezza sul Lavoro": "DVR Dinamico, Medicina del Lavoro, Formazione 81/08.",
+    "Standard & Qualità": "Certificazioni ISO, Ottimizzazione Processi.",
+    "Sviluppo Competenze": "Fondi Interprofessionali, Coaching Manageriale."
 }
 
-# --- 4. MATRICE 54 DOMANDE ---
+# --- 4. MATRICE COMPLETA 54 DOMANDE ---
 DOMANDE_MATRICE = {
     'Strategia & Controllo': [
-        ("Piano Strategico", ["Nessun piano", "Obiettivi verbali", "Budget annuale", "Piano triennale", "Piano dinamico"]),
-        ("Monitoraggio KPI", ["Assente", "Solo bilancio", "Excel saltuario", "Dashboard mensile", "BI real-time"]),
-        ("Organigramma", ["Solo titolare", "Confuso", "Schema base", "Deleghe definite", "Manager autonomi"]),
+        ("Piano Strategico", ["Nessun piano", "Verbali", "Budget annuale", "Piano triennale", "Piano dinamico"]),
+        ("Monitoraggio KPI", ["Assente", "Solo bilancio", "Excel saltuario", "Dashboard", "BI real-time"]),
+        ("Organigramma", ["Titolare", "Confuso", "Schema base", "Deleghe", "Manager autonomi"]),
         ("Analisi Competitor", ["Mai", "Informale", "Annuale", "Costante", "Data-driven"]),
-        ("Delega", ["Nessuna", "Solo semplici", "Autonomia limitata", "Responsabilità budget", "Direzione autonoma"]),
-        ("Passaggio Generazionale", ["Tabù", "Informale", "Successori scelti", "Affiancamento attivo", "Patti famiglia"])
+        ("Delega", ["Nessuna", "Compiti base", "Capi area", "Responsabilità budget", "Direzione autonoma"]),
+        ("Passaggio Generazionale", ["Tabù", "Informale", "Successori scelti", "Affiancamento", "Patti famiglia"])
     ],
     'Digitalizzazione': [
         ("Infrastruttura IT", ["Obsolescente", "Base", "Server locale", "Cloud ibrido", "Full Cloud"]),
-        ("ERP/Gestionale", ["Solo fatture", "Contabilità", "Settoriale", "Integrato", "Ecosistema API"]),
-        ("Processi Paperless", ["Cartaceo", "Scansioni", "Misto", "Digitale prevalente", "Workflow automatici"]),
-        ("Cybersecurity", ["Base/Free", "Backup saltuari", "Firewall/Cloud", "Audit regolari", "SOC 24/7"]),
-        ("Presenza Web", ["Assente", "Sito vetrina", "Social aggiornati", "ADS/SEO", "Lead generation"]),
-        ("Innovazione AI", ["Nessuna", "Uso sporadico", "Test area", "Integrata", "AI-driven"])
+        ("ERP/Gestionale", ["Fatture", "Contabilità", "Settoriale", "Integrato", "Ecosistema API"]),
+        ("Processi Paperless", ["Cartaceo", "Pochi PDF", "Misto", "Digitale", "Workflow automatici"]),
+        ("Cybersecurity", ["Base", "Backup saltuari", "Firewall", "Audit", "SOC 24/7"]),
+        ("Marketing Digitale", ["No", "Sito vetrina", "Social", "ADS/SEO", "Lead Gen"]),
+        ("Innovazione AI", ["No", "Sporadico", "Test area", "Integrata", "AI-driven"])
     ],
     'Gestione HR': [
-        ("Welfare", ["Assente", "Rimborsi", "Convenzioni", "Piattaforma attiva", "Benefit evoluti"]),
-        ("Valutazione", ["Nessuna", "Sensazioni", "Colloquio annuo", "MBO/KPI", "Feedback 360"]),
-        ("Retention", ["Fuga talenti", "Media", "Bonus sporadici", "Employer Branding", "Top Employer"]),
-        ("Clima", ["Tensioni", "Ignorato", "Saltuario", "Indagine strutturata", "Monitoraggio continuo"]),
-        ("Formazione", ["Solo obbligatoria", "Corsi rari", "Budget annuo", "Piani crescita", "Academy"]),
-        ("Flessibilità", ["Presenza rigida", "Rara", "Oraria", "Smart strutturato", "Per obiettivi"])
+        ("Welfare", ["No", "Rimborsi", "Convenzioni", "Piattaforma", "Benefit evoluti"]),
+        ("Valutazione", ["No", "Sensazioni", "Annuale", "MBO/KPI", "Feedback 360"]),
+        ("Retention", ["Fuga", "Media", "Bonus", "Employer Branding", "Top Employer"]),
+        ("Clima", ["Tensioni", "Ignorato", "Saltuario", "Indagine str.", "Monitoraggio cont."]),
+        ("Formazione", ["Legge", "Rari", "Budget", "Piani crescita", "Academy"]),
+        ("Smart Working", ["No", "Rara", "Flessibile", "Smart str.", "Anywhere"])
     ],
     'Finanza & Investimenti': [
-        ("Cash Flow", ["Nessuna", "Saldo banca", "Mensile", "Previsionale 6m", "Tesoreria predittiva"]),
-        ("Finanza Agevolata", ["Mai", "Rara", "Bandi semplici", "Monitoraggio attivo", "Pianificazione"]),
-        ("Rating Bancario", ["Sconosciuto", "Vago", "Annuo", "Trimestrale", "Ottimizzazione"]),
-        ("Marginalità", ["Utile fine anno", "Stime macro", "Per commessa", "Analitica real-time", "Predittiva"]),
-        ("Gestione Credito", ["Reattiva", "Solleciti", "Procedura scritta", "Ufficio dedicato", "Assicurazione"]),
-        ("Investimenti R&S", ["0%", "Reattiva", "1-2%", "5%", ">5%"])
+        ("Cash Flow", ["No", "Saldo banca", "Mensile", "Previsionale 6m", "Tesoreria AI"]),
+        ("Agevolata", ["Mai", "Casuale", "Bandi base", "Monitoraggio", "Strategica"]),
+        ("Rating Bancario", ["No", "Vago", "Annuo", "Trimestrale", "Ottimizzazione"]),
+        ("Marginalità", ["Utile fine anno", "Stime", "Per commessa", "Analitica", "Predittiva"]),
+        ("Gestione Credito", ["Reattiva", "Solleciti", "Scritta", "Ufficio dedicato", "Assicurazione"]),
+        ("R&S", ["0%", "Reattiva", "1-2%", "5%", ">5%"])
     ],
     'Sostenibilità (ESG)': [
-        ("Cultura ESG", ["No", "Solo legge", "Iniziative isolate", "Piano industriale", "Rating certificato"]),
+        ("Cultura ESG", ["No", "Solo legge", "Isolate", "Piano Ind.", "Rating cert."]),
         ("Ambiente", ["No", "Differenziata", "Monitoraggio", "Carbon Footprint", "Net Zero"]),
-        ("Inclusione", ["No", "Sensibilità", "Donne leader", "Policy scritte", "Certificazione Parità"]),
-        ("Etica", ["No", "Leggi base", "Codice Etico", "Bilancio Sostenibilità", "Società Benefit"]),
+        ("Inclusione", ["No", "Sensibilità", "Donne leader", "Policy", "Certificazione"]),
+        ("Etica", ["No", "Leggi", "Codice Etico", "Bilancio Sost.", "Società Benefit"]),
         ("Governance", ["Padronale", "Famigliare", "CdA", "Indipendenti", "Evoluta"]),
-        ("Catena Fornitori", ["Solo prezzo", "Vicinanza", "Autocertificazioni", "Audit ESG", "Solo certificati"])
+        ("Fornitori ESG", ["Prezzo", "Vicinanza", "Autocertificazione", "Audit", "Solo cert."])
     ],
     'Protezione Legale': [
-        ("Modello 231", ["Assente", "Studio", "Adottato base", "Aggiornato", "ODV attivo"]),
-        ("Privacy (GDPR)", ["Nomine base", "Obsoleta", "Conformità", "Audit periodici", "DPO nominato"]),
-        ("Contrattualistica", ["Verbali", "Generici", "Standard", "Ad hoc", "Legal Management"]),
-        ("Marchi/IP", ["No", "Marchio", "Monitoraggio", "Strategia brevetti", "Asset a bilancio"]),
-        ("Gestione Rischi", ["Emergenza", "Al bisogno", "Tutela legale", "Prevenzione", "Proattiva"]),
-        ("Asset Protection", ["No", "Polizze base", "Holding/Fondo", "Trust", "Pianificazione"])
+        ("Modello 231", ["No", "Studio", "Adottato", "Aggiornato", "ODV attivo"]),
+        ("Privacy", ["Base", "Obsoleta", "Conformità", "Audit", "DPO"]),
+        ("Contratti", ["Verbali", "Web", "Standard", "Ad hoc", "Legal Management"]),
+        ("Marchi/IP", ["No", "Marchio", "Monitoraggio", "Strategia", "Brevetti"]),
+        ("Rischi", ["Emergenza", "Avvocato", "Tutela", "Prevenzione", "Proattiva"]),
+        ("Asset Protection", ["No", "Polizze", "Holding", "Trust", "Pianificazione"])
     ],
     'Sicurezza sul Lavoro': [
-        ("Conformità DVR", ["Scaduto", "Base", "Aggiornato", "Dinamico", "Eccellenza"]),
-        ("Formazione", ["Incompleta", "Obbligatoria", "In regola", "Comportamentale", "Cultura diffusa"]),
-        ("Salute", ["Assente", "Obbligatoria", "Pianificata", "KPI salute", "Prevenzione"]),
-        ("Gestione DPI", ["Informale", "Cartaceo", "Controllo", "Digitale", "IoT"]),
-        ("Manutenzioni", ["A guasto", "Registro", "Programmata", "Software", "Predittiva"]),
-        ("Gestione Appalti", ["No", "DURC", "DUVRI", "Coordinamento", "Audit costante"])
+        ("DVR", ["Scaduto", "Standard", "Regolare", "Dinamico", "Eccellenza"]),
+        ("Formazione", ["Incompleta", "Legge", "In regola", "Comportamentale", "Cultura"]),
+        ("Salute", ["No", "Obbligatoria", "Pianificata", "KPI salute", "Prevenzione"]),
+        ("DPI", ["Libero", "Registro", "Controllo", "Digitale", "IoT"]),
+        ("Manutenzione", ["Guasto", "Registro", "Programmata", "Software", "Predittiva"]),
+        ("Appalti", ["No", "DURC", "DUVRI", "Coordinamento", "Audit"])
     ],
     'Standard & Qualità': [
         ("ISO 9001", ["No", "In corso", "Formale", "Strumento", "Motore"]),
-        ("Processi", ["No", "Parziale", "Procedure core", "Mappatura totale", "Lean"]),
-        ("Controllo Qualità", ["Fine", "Campionamento", "Sistemico", "Sensori", "Zero difetti"]),
-        ("Soddisfazione", ["Reclami", "Sporadica", "Strutturata", "NPS", "Co-progettazione"]),
-        ("Qualifica Fornitori", ["Prezzo", "Storici", "Albo", "Rating", "Partnership"]),
-        ("Non Conformità", ["Risolte", "Excel", "Cause radice", "Azioni efficaci", "Prevenzione"])
+        ("Processi", ["No", "Parziale", "Procedure", "Mappatura", "Lean"]),
+        ("Controllo Qualità", ["Fine", "Campione", "Sistemico", "Sensori", "Zero difetti"]),
+        ("Clienti", ["Reclami", "Sondaggio", "Indagine", "NPS", "Co-progettazione"]),
+        ("Fornitori", ["Prezzo", "Storici", "Albo", "Rating", "Partnership"]),
+        ("Non Conformità", ["Risolte", "Excel", "Analisi Cause", "Azioni eff.", "Prevenzione"])
     ],
     'Sviluppo Competenze': [
-        ("Gap Analysis", ["Mai", "Urgenze", "Su richiesta", "Annuale", "Mappatura futuro"]),
-        ("Uso Fondi", ["Mai", "Rari", "Saltuari", "Sempre", "Ottimizzazione"]),
-        ("Learning", ["Aula", "Affiancamento", "E-learning", "Blended", "Academy"]),
+        ("Gap Analysis", ["Mai", "Urgenze", "Su richiesta", "Annuale", "Mappatura"]),
+        ("Fondi", ["Mai", "Rari", "Saltuari", "Sempre", "Ottimizzazione"]),
+        ("Learning", ["Aula", "Affiancamento", "E-learning", "Mix", "Academy"]),
         ("Leadership", ["No", "Titolare", "Manager", "Coaching", "Diffusa"]),
-        ("Carriera", ["No", "Anzianità", "Opportunità", "Percorsi chiari", "Meritocrazia"]),
-        ("Mindset", ["Resistenza", "Timore", "Pionieri", "Apertura", "DNA Innovazione"])
+        ("Carriera", ["No", "Anzianità", "Crescita", "Percorsi chiari", "Meritocrazia"]),
+        ("Mindset", ["Resistenza", "Timore", "Pionieri", "Apertura", "DNA"])
     ]
 }
 
-# --- 5. FUNZIONI LOGICHE ---
-def genera_consulenza_ai(punteggi, info):
-    peggiori = sorted(punteggi.items(), key=lambda x: x[1])[:3]
-    prompt = f"""
-    Agisci come Partner NextaHub. Analizza l'azienda {info['azienda']} ({info['settore']}).
-    Punteggi: {punteggi}. Criticità: {peggiori}. 
-    Usa il catalogo: {SERVIZI_NEXTA}.
-    Genera un report professionale, con roadmap a 12 mesi.
-    """
+# --- 5. AGENTE AI ---
+def genera_report_ai(punteggi, info, benchmark):
     try:
         genai.configure(api_key=API_KEY)
         model = genai.GenerativeModel('gemini-1.5-flash')
+        gap_testo = "\n".join([f"- {k}: Azienda {v}/5 (Target Settore {benchmark[k]}/5)" for k,v in punteggi.items()])
+        
+        prompt = f"""
+        Sei il Senior Partner di NextaHub. Crea un Report Strategico di ANALISI GAP per {info['azienda']} ({info['settore']}).
+        DATI:
+        {gap_testo}
+        SERVIZI NEXTA: {SERVIZI_NEXTA}
+
+        STRUTTURA RICHIESTA (Sii estremamente prolisso, tecnico e descrittivo - puntiamo a 4 pagine di contenuto):
+        1. ANALISI DELLO STATO DELL'ARTE: Spiega perché l'azienda si trova in questa posizione rispetto al mercato.
+        2. DETTAGLIO GAP PER AREA: Analizza ognuna delle 9 aree. Spiega cosa manca per raggiungere il benchmark e i rischi del non agire.
+        3. PIANO DI AZIONE NEXTAHUB (ROADMAP 24 MESI): Suggerisce quali servizi Nexta attivare subito e quali dopo.
+        4. VANTAGGIO COMPETITIVO: Come queste azioni trasformeranno l'azienda in un leader di settore.
+        
+        Usa un tono autorevole, linguaggio da alta consulenza e formatta in Markdown elegante.
+        """
         return model.generate_content(prompt).text
     except:
-        return "⚠️ Configurare la Chiave API Gemini per ricevere l'analisi avanzata."
+        return "⚠️ Errore AI. Controlla API Key o connessione."
 
-# --- 6. GESTIONE STATO ---
+# --- 6. LOGICA APP ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
 if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_piva' not in st.session_state: st.session_state.current_piva = None
 
-# --- 7. SIDEBAR ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.image(LOGO_URL, width=200)
-    st.markdown("### 🛠️ Menu")
-    if st.button("🏢 Anagrafica Cliente", use_container_width=True): st.session_state.page = "Anagrafica"
-    if st.button("📝 Assessment", use_container_width=True): st.session_state.page = "Questionario"
-    if st.button("📊 Report & Gap", use_container_width=True): st.session_state.page = "Valutazione"
-    if st.button("📁 Archivio Storico", use_container_width=True): st.session_state.page = "Archivio"
-    st.markdown("---")
+    if st.button("🏢 Anagrafica"): st.session_state.page = "Anagrafica"
+    if st.button("📝 Assessment"): st.session_state.page = "Questionario"
+    if st.button("📊 Report"): st.session_state.page = "Valutazione"
+    if st.button("📁 Archivio"): st.session_state.page = "Archivio"
     if st.session_state.current_piva:
-        cl_name = st.session_state.clienti[st.session_state.current_piva]['info']['azienda']
-        st.success(f"Attivo: {cl_name}")
+        st.info(f"Cliente: {st.session_state.clienti[st.session_state.current_piva]['info']['azienda']}")
 
-# --- 8. PAGINA 1: ANAGRAFICA ---
+# --- PAGINA 1: ANAGRAFICA ---
 if st.session_state.page == "Anagrafica":
     st.title("🏢 Anagrafica Cliente")
-    with st.form("form_anag"):
+    with st.form("anag"):
         c1, c2 = st.columns(2)
         with c1:
-            rag_soc = st.text_input("Ragione Sociale")
-            p_iva = st.text_input("P.IVA / CF")
-            v_ia = st.text_input("Via/Piazza")
-            c_iv = st.text_input("Civico")
+            rs = st.text_input("Ragione Sociale")
+            pi = st.text_input("P.IVA")
+            via = st.text_input("Via")
+            civ = st.text_input("Civico")
         with c2:
-            c_ap = st.text_input("CAP")
-            c_om = st.text_input("Comune")
-            p_rov = st.text_input("Provincia (Sigla)")
-            settore = st.selectbox("Settore", list(BENCHMARK_DATI.keys()))
-        
-        if st.form_submit_button("Salva e Procedi"):
-            if rag_soc and p_iva:
-                st.session_state.clienti[p_iva] = {
-                    "info": {
-                        "azienda": rag_soc, "piva": p_iva, "via": v_ia, "civico": c_iv,
-                        "cap": c_ap, "comune": c_om, "provincia": p_rov, "settore": settore
-                    },
-                    "assessments": []
-                }
-                st.session_state.current_piva = p_iva
+            cap = st.text_input("CAP")
+            pa = st.text_input("Paese", "Italia")
+            pr = st.text_input("Provincia")
+            set_ = st.selectbox("Settore", list(BENCHMARK_DATI.keys()))
+        if st.form_submit_button("Salva"):
+            if rs and pi:
+                st.session_state.clienti[pi] = {"info": {"azienda": rs, "piva": pi, "settore": set_, "indirizzo": f"{via} {civ}, {cap} {pr} ({pa})"}, "assessments": []}
+                st.session_state.current_piva = pi
                 st.session_state.page = "Questionario"
                 st.rerun()
-            else:
-                st.error("Ragione Sociale e P.IVA sono obbligatori.")
 
-# --- 9. PAGINA 2: QUESTIONARIO (54 DOMANDE) ---
+# --- PAGINA 2: QUESTIONARIO ---
 elif st.session_state.page == "Questionario":
-    piva = st.session_state.current_piva
-    if not piva: 
-        st.warning("Seleziona un cliente."); st.stop()
-    
-    st.title(f"📝 Assessment: {st.session_state.clienti[piva]['info']['azienda']}")
+    pi = st.session_state.current_piva
+    if not pi: st.error("Inserisci anagrafica"); st.stop()
+    st.title("📝 Assessment Strategico")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
-    temp_scores = {}
-
+    res = {}
     for i, area in enumerate(DOMANDE_MATRICE.keys()):
         with tabs[i]:
-            sc_area = []
+            scores = []
             for j, (q, opts) in enumerate(DOMANDE_MATRICE[area]):
-                st.markdown(f"**{j+1}. {q}**")
-                s = st.radio(f"q_{area}_{j}", [1,2,3,4,5], format_func=lambda x: f"{x}: {opts[x-1]}", key=f"sel_{piva}_{area}_{j}", label_visibility="collapsed")
-                sc_area.append(s)
-            temp_scores[area] = sum(sc_area) / 6
-
-    if st.button("✅ Salva Analisi", use_container_width=True):
-        st.session_state.clienti[piva]['assessments'].append({
-            "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "punteggi": temp_scores,
-            "analisi": ""
-        })
+                s = st.radio(q, [1,2,3,4,5], format_func=lambda x: f"{x}: {opts[x-1]}", key=f"{pi}{area}{j}")
+                scores.append(s)
+            res[area] = sum(scores)/6
+    if st.button("Salva Assessment"):
+        st.session_state.clienti[pi]['assessments'].append({"data": datetime.now().strftime("%d/%m/%Y"), "punteggi": res, "ai": ""})
         st.session_state.page = "Valutazione"
         st.rerun()
 
-# --- 10. PAGINA 3: VALUTAZIONE & AI ---
+# --- PAGINA 3: VALUTAZIONE ---
 elif st.session_state.page == "Valutazione":
-    piva = st.session_state.current_piva
-    if not piva or not st.session_state.clienti[piva]['assessments']:
-        st.warning("Nessun dato."); st.stop()
-    
-    cl = st.session_state.clienti[piva]
+    pi = st.session_state.current_piva
+    if not pi or not st.session_state.clienti[pi]['assessments']: st.error("Dati mancanti"); st.stop()
+    cl = st.session_state.clienti[pi]
     ass = cl['assessments'][-1]
-    info = cl['info']
-
-    st.title(f"📊 Report: {info['azienda']}")
-    st.caption(f"📍 {info['via']} {info['civico']}, {info['cap']} {info['comune']} ({info['provincia']})")
-
-    # Radar Chart
+    
+    st.title(f"📊 Report: {cl['info']['azienda']}")
+    
+    # Grafico Radar
     fig = go.Figure()
-    categories = list(ass['punteggi'].keys())
-    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='red'))
-    fig.add_trace(go.Scatterpolar(r=[BENCHMARK_DATI[info['settore']][k] for k in categories], theta=categories, name='Benchmark', line_color='gray', line_dash='dash'))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=550)
-    st.plotly_chart(fig, use_container_width=True)
+    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=list(ass['punteggi'].keys()), fill='toself', name='Azienda'))
+    fig.add_trace(go.Scatterpolar(r=[BENCHMARK_DATI[cl['info']['settore']][k] for k in ass['punteggi'].keys()], theta=list(ass['punteggi'].keys()), name='Benchmark'))
+    st.plotly_chart(fig)
 
-    # AI Agent
-    st.subheader("🤖 Analisi Strategica NextaHub (AI)")
-    if not ass['analisi']:
-        if st.button("Genera Report con AI"):
-            with st.spinner("Elaborazione..."):
-                ass['analisi'] = genera_consulenza_ai(ass['punteggi'], info)
-                st.rerun()
-    else:
-        st.markdown(ass['analisi'])
+    if st.button("🚀 Genera Analisi AI Profonda"):
+        with st.spinner("L'Agente Nexta sta scrivendo..."):
+            ass['ai'] = genera_report_ai(ass['punteggi'], cl['info'], BENCHMARK_DATI[cl['info']['settore']])
+            st.rerun()
+    if ass['ai']:
+        st.markdown(ass['ai'])
 
-# --- 11. PAGINA 4: ARCHIVIO ---
+# --- PAGINA 4: ARCHIVIO ---
 elif st.session_state.page == "Archivio":
-    st.title("📁 Archivio Storico")
-    if not st.session_state.clienti:
-        st.info("Nessun cliente registrato.")
-    else:
-        for p, d in st.session_state.clienti.items():
-            with st.expander(f"🏢 {d['info']['azienda']} (PI: {p})"):
-                st.write(f"**Settore:** {d['info']['settore']}")
-                for i, a in enumerate(d['assessments']):
-                    if st.button(f"Vedi Report del {a['data']}", key=f"arch_{p}_{i}"):
-                        st.session_state.current_piva = p
-                        st.session_state.page = "Valutazione"
-                        st.rerun()
+    st.title("📁 Archivio")
+    for p, d in st.session_state.clienti.items():
+        if st.button(f"{d['info']['azienda']} ({p})"):
+            st.session_state.current_piva = p
+            st.session_state.page = "Valutazione"
+            st.rerun()
