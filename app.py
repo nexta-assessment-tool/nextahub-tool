@@ -139,32 +139,76 @@ with st.sidebar:
     if st.button("📊 3. Report & AI"): st.session_state.page = "Valutazione"
     if st.button("🗄️ 4. Archivio Valutazioni"): st.session_state.page = "Archivio"
 
-# PAGINA 1: ANAGRAFICA
+# --- PAGINA 1: ANAGRAFICA COMPLETA ---
 if st.session_state.page == "Anagrafica":
-    st.title("🏢 Anagrafica Cliente")
-    with st.form("form_anag"):
+    st.title("🏢 Anagrafica Cliente Completa")
+    st.subheader("Dati Identificativi e Dimensionali")
+    
+    with st.form("form_anag_completa"):
+        # Sezione 1: Dati Aziendali
         c1, c2 = st.columns(2)
         with c1:
             rs = st.text_input("Ragione Sociale *")
-            pi = st.text_input("Partita IVA *")
-            comune = st.text_input("Comune *")
+            pi = st.text_input("Partita IVA / Codice Fiscale *")
             settore = st.selectbox("Settore Business *", SETTORI)
-        with c2:
             regione = st.selectbox("Regione *", REGIONI)
-            comm = st.text_input("Riferimento Commerciale Nexta *")
-            rif_az = st.text_input("Rif. Aziendale (Contatto)")
+            comune = st.text_input("Comune Sede Legale *")
+            indirizzo = st.text_input("Indirizzo e n. civico")
+        with c2:
+            pec = st.text_input("PEC Aziendale")
+            sito = st.text_input("Sito Web")
+            dipendenti = st.number_input("Numero Dipendenti (Media annua)", min_value=0, step=1)
+            fatturato = st.selectbox("Fatturato Annuo", ["< 2M€", "2M€ - 10M€", "10M€ - 50M€", "> 50M€"])
+            ateco = st.text_input("Codice ATECO (se noto)")
+
+        st.divider()
         
-        if st.form_submit_button("➡️ Avvia Assessment"):
+        # Sezione 2: Contatti e Referenti
+        c3, c4 = st.columns(2)
+        with c3:
+            st.markdown("**Legale Rappresentante**")
+            legale_nom = st.text_input("Nome e Cognome LR")
+            legale_mail = st.text_input("Email LR")
+        with c4:
+            st.markdown("**Referente Interno (Contatto Operativo)**")
+            rif_az = st.text_input("Nome e Cognome Referente")
+            rif_tel = st.text_input("Telefono/Cellulare Referente")
+
+        st.divider()
+        
+        # Sezione 3: Dati NextaHub
+        st.markdown("**Area Commerciale NextaHub**")
+        comm = st.text_input("Senior Consultant / Riferimento Commerciale Nexta *")
+        note_comm = st.text_area("Note preliminari sul cliente")
+
+        if st.form_submit_button("➡️ Salva e Inizia Assessment"):
             if rs and pi and settore and comm:
                 st.session_state.current_piva = pi
-                if pi not in st.session_state.db_clienti:
-                    st.session_state.db_clienti[pi] = {
-                        "info": {"azienda": rs, "piva": pi, "settore": settore, "regione": regione, "comune": comune, "commerciale": comm, "contatto": rif_az},
-                        "storia": []
-                    }
+                # Salvataggio nel database con tutti i nuovi campi
+                st.session_state.db_clienti[pi] = {
+                    "info": {
+                        "azienda": rs, 
+                        "piva": pi, 
+                        "settore": settore, 
+                        "regione": regione, 
+                        "comune": comune,
+                        "indirizzo": indirizzo,
+                        "pec": pec,
+                        "ateco": ateco,
+                        "dipendenti": dipendenti,
+                        "fatturato": fatturato,
+                        "commerciale": comm, 
+                        "contatto_nome": rif_az,
+                        "contatto_tel": rif_tel,
+                        "legale_rappresentante": legale_nom,
+                        "note": note_comm
+                    },
+                    "storia": []
+                }
                 st.session_state.page = "Questionario"
                 st.rerun()
-            else: st.error("Compila i campi obbligatori (*)")
+            else:
+                st.error("Per favore, compila tutti i campi contrassegnati con l'asterisco (*)")
 
 # PAGINA 2: QUESTIONARIO (54 DOMANDE)
 elif st.session_state.page == "Questionario":
