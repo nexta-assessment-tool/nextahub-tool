@@ -46,7 +46,7 @@ fig.add_trace(go.Scatterpolar(r=scores, theta=CATEGORIES, fill='toself', name='P
 fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), showlegend=True, height=600)
 st.plotly_chart(fig, use_container_width=True)
 
-# --- LOGICA AI ---
+# --- LOGICA AI CON AUTO-DETECTION ---
 if st.button("Genera Analisi Strategica NextaHub"):
     if not nome_azienda:
         st.error("Inserisci la Ragione Sociale.")
@@ -54,30 +54,31 @@ if st.button("Genera Analisi Strategica NextaHub"):
         st.error("Chiave API mancante nei Secrets!")
     else:
         try:
-            # Configurazione IA
             genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
             
-            # --- MODIFICA RISOLUTIVA ---
-            # Utilizziamo il nome del modello legacy che è garantito per funzionare con le API Key attuali
-            model = genai.GenerativeModel('gemini-pro') 
+            # Cerca il primo modello disponibile che supporti la generazione di contenuti
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
             
-            context = f"""
-            Sei il Senior Advisor di NextaHub con 20 anni di esperienza. Analizza {nome_azienda} ({settore}, {regione}).
-            Trasforma i punteggi bassi in soluzioni NextaHub.
-            Focus:
-            - Sicurezza/Legale: Rischi sanzioni e penali.
-            - Finanza: Bandi e Crediti d'Imposta.
-            - Formazione: Come leva economica per finanziare la consulenza.
-            - Proponi: ENTRY, ELITE o FLEX.
-            """
-            input_prompt = f"Punteggi: {dict(zip(CATEGORIES, scores))}. Note: {note_commerciale}"
-            
-            with st.spinner("Generazione Report in corso..."):
-                response = model.generate_content(context + "\n\n" + input_prompt)
-                st.success("Analisi Completata!")
-                st.markdown(response.text)
-                st.download_button("Scarica Report", response.text, file_name=f"Report_{nome_azienda}.txt")
+            if not available_models:
+                st.error("Nessun modello disponibile trovato per questa API Key.")
+            else:
+                # Seleziona il modello 1.5 flash se presente, altrimenti il primo della lista
+                selected_model = next((m for m in available_models if "1.5-flash" in m), available_models[0])
+                model = genai.GenerativeModel(selected_model)
+                
+                context = f"""
+                Sei il Senior Advisor di NextaHub con 20 anni di esperienza. Analizza {nome_azienda} ({settore}, {regione}).
+                Focus: Rischi sanzioni (81/08, GDPR), Finanza Agevolata, ESG e Formazione Finanziata.
+                Proponi: ENTRY, ELITE o FLEX.
+                """
+                input_prompt = f"Punteggi: {dict(zip(CATEGORIES, scores))}. Note: {note_commerciale}"
+                
+                with st.spinner(f"Generazione con {selected_model}..."):
+                    response = model.generate_content(context + "\n\n" + input_prompt)
+                    st.success("Analisi Completata!")
+                    st.markdown(response.text)
+                    st.download_button("Scarica Report", response.text, file_name=f"Report_{nome_azienda}.txt")
                     
         except Exception as e:
-            st.error(f"Errore: {str(e)}")
-            st.write("Se l'errore persiste, controlla di aver creato la chiave su aistudio.google.com correttamente.")
+            st.error(f"Errore di connessione a Google: {str(e)}")
+            st.info("Se vedi ancora 404, scrivi 'LISTA' qui in chat così ti spiego come sbloccare i modelli dal tuo pannello Google.")
