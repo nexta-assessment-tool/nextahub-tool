@@ -210,8 +210,8 @@ if st.form_submit_button("Crea Fascicolo"):
         st.session_state.current_piva = p_iva
         st.session_state.page = "Questionario"
         st.rerun()
-            else:
-                st.error("Ragione Sociale e P.IVA sono obbligatori.")
+    else:
+        st.error("Ragione Sociale e P.IVA sono obbligatori.")
 
 # --- 9. PAGINA 2: QUESTIONARIO 54 DOMANDE ---
 elif st.session_state.page == "Questionario":
