@@ -119,7 +119,7 @@ def analizza_con_gemini(dati_cliente, punteggi):
         model = genai.GenerativeModel(scelto)
         
         prompt = f"""
-        Agisci come Senior Partner e Consultant di NextaHub. Il tuo obiettivo è convertire questa analisi in un mandato di consulenza.
+        Agisci come Senior Partner e Consultant di Nexta. Il tuo obiettivo è convertire questa analisi in una proposta commerciale di consulenza attraverso i servizi di Nexta.
         
         CLIENTE: {dati_cliente['azienda']} | SETTORE: {dati_cliente['settore']} | REGIONE: {dati_cliente['regione']}
         CONSULENTE NEXTA: {dati_cliente['commerciale']}
@@ -130,7 +130,7 @@ def analizza_con_gemini(dati_cliente, punteggi):
         1. TABELLA COMPARATIVA SCORE VS BENCHMARK (Regione: {dati_cliente['regione']}).
         2. ANALISI DEI GAP E SOLUZIONI NEXTAHUB: Dividi i gap per URGENZA. Per ogni gap spiega il rischio di inazione e il beneficio del servizio NextaHub consigliato.
         3. ROADMAP DI TRASFORMAZIONE (12-24 MESI).
-        4. RESOCONTO CONCLUSIVO E SERVIZI PRIORITARI: Identifica max 3 servizi. Uno deve essere di FINANZA AGEVOLATA/FORMAZIONE FINANZIATA per spiegare come finanziare gli altri due.
+        4. RESOCONTO CONCLUSIVO E SERVIZI PRIORITARI: Identifica almeno 3 servizi. Uno deve essere di FINANZA AGEVOLATA/FORMAZIONE FINANZIATA per spiegare come finanziare gli altri.
         
         FIRMA: "Analisi a cura di: {dati_cliente['commerciale']} - Senior Consultant NextaHub"
         """
