@@ -57,16 +57,17 @@ if st.button("Genera Analisi Strategica NextaHub"):
             # Configurazione IA
             genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
             
-            # Usiamo il nome del modello standard
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            # --- MODIFICA RISOLUTIVA ---
+            # Utilizziamo il nome del modello legacy che è garantito per funzionare con le API Key attuali
+            model = genai.GenerativeModel('gemini-pro') 
             
             context = f"""
-            Sei il Senior Advisor di NextaHub. Analizza {nome_azienda} ({settore}, {regione}).
-            Usa la tua esperienza di 20 anni per sollevare bisogni latenti.
-            Logiche: 
-            - Score bassi in Sicurezza/Legale = Rischi Penali/Civili immediati.
-            - Formazione Finanziata come leva per pagare consulenze ISO/Welfare.
-            - ESG per rating bancario.
+            Sei il Senior Advisor di NextaHub con 20 anni di esperienza. Analizza {nome_azienda} ({settore}, {regione}).
+            Trasforma i punteggi bassi in soluzioni NextaHub.
+            Focus:
+            - Sicurezza/Legale: Rischi sanzioni e penali.
+            - Finanza: Bandi e Crediti d'Imposta.
+            - Formazione: Come leva economica per finanziare la consulenza.
             - Proponi: ENTRY, ELITE o FLEX.
             """
             input_prompt = f"Punteggi: {dict(zip(CATEGORIES, scores))}. Note: {note_commerciale}"
@@ -79,4 +80,4 @@ if st.button("Genera Analisi Strategica NextaHub"):
                     
         except Exception as e:
             st.error(f"Errore: {str(e)}")
-            st.write("Tentativo di recupero: Prova a controllare se la tua API Key è attiva su Google AI Studio.")
+            st.write("Se l'errore persiste, controlla di aver creato la chiave su aistudio.google.com correttamente.")
