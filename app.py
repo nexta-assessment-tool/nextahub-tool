@@ -5,7 +5,6 @@ from datetime import datetime
 
 # --- 1. CONFIGURAZIONE API E PAGINA ---
 st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
-st.write("Chiavi trovate nei Secrets:", list(st.secrets.keys()))
 
 # Sistema di caricamento sicuro della API Key
 if "GEMINI_API_KEY" in st.secrets:
