@@ -7,12 +7,39 @@ from datetime import datetime
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="NextaHub Strategic Suite", layout="wide", initial_sidebar_state="expanded")
 
-# --- BENCHMARK DI SETTORE ---
+# --- CSS PER LA STAMPA ---
+st.markdown("""
+    <style>
+    @media print {
+        header, [data-testid="stSidebar"], .stButton {
+            display: none !important;
+        }
+        .main .block-container {
+            padding-top: 1rem !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- BENCHMARK DI SETTORE AGGIORNATI (17 SETTORI) ---
 BENCHMARK_DATI = {
-    "Manifatturiero": {"Strategia & Controllo": 3.2, "Digitalizzazione": 2.8, "Gestione HR": 3.0, "Finanza & Investimenti": 3.5, "Sostenibilità (ESG)": 2.5, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.5, "Standard & Qualità": 4.0, "Sviluppo Competenze": 2.9},
-    "IT & Digital": {"Strategia & Controllo": 3.8, "Digitalizzazione": 4.5, "Gestione HR": 4.0, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.0, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 3.0, "Standard & Qualità": 3.5, "Sviluppo Competenze": 4.2},
-    "Servizi": {"Strategia & Controllo": 3.0, "Digitalizzazione": 3.5, "Gestione HR": 3.5, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 2.8, "Protezione Legale": 3.2, "Sicurezza sul Lavoro": 3.5, "Standard & Qualità": 3.0, "Sviluppo Competenze": 3.5},
-    "Edilizia": {"Strategia & Controllo": 2.5, "Digitalizzazione": 2.2, "Gestione HR": 2.8, "Finanza & Investimenti": 2.8, "Sostenibilità (ESG)": 2.2, "Protezione Legale": 3.0, "Sicurezza sul Lavoro": 4.8, "Standard & Qualità": 3.2, "Sviluppo Competenze": 2.5}
+    "Agroalimentare (Food & Beverage)": {"Strategia & Controllo": 3.4, "Digitalizzazione": 3.0, "Gestione HR": 3.1, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.8, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 4.5, "Sviluppo Competenze": 3.0},
+    "Moda e Tessile (Fashion & Luxury)": {"Strategia & Controllo": 3.6, "Digitalizzazione": 3.8, "Gestione HR": 3.5, "Finanza & Investimenti": 3.4, "Sostenibilità (ESG)": 4.0, "Protezione Legale": 4.2, "Sicurezza sul Lavoro": 3.5, "Standard & Qualità": 4.0, "Sviluppo Competenze": 3.7},
+    "Arredo e Design (Furniture)": {"Strategia & Controllo": 3.2, "Digitalizzazione": 3.2, "Gestione HR": 3.3, "Finanza & Investimenti": 3.1, "Sostenibilità (ESG)": 3.5, "Protezione Legale": 3.4, "Sicurezza sul Lavoro": 3.8, "Standard & Qualità": 3.7, "Sviluppo Competenze": 3.2},
+    "Meccanica e Automazione": {"Strategia & Controllo": 3.5, "Digitalizzazione": 3.8, "Gestione HR": 3.4, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 3.0, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.5, "Standard & Qualità": 4.2, "Sviluppo Competenze": 3.8},
+    "Metallurgia e Siderurgia": {"Strategia & Controllo": 3.2, "Digitalizzazione": 2.8, "Gestione HR": 3.0, "Finanza & Investimenti": 3.8, "Sostenibilità (ESG)": 2.8, "Protezione Legale": 3.2, "Sicurezza sul Lavoro": 4.8, "Standard & Qualità": 3.8, "Sviluppo Competenze": 3.0},
+    "Automotive (Automobilistico)": {"Strategia & Controllo": 3.8, "Digitalizzazione": 4.2, "Gestione HR": 3.7, "Finanza & Investimenti": 3.5, "Sostenibilità (ESG)": 3.8, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.6, "Standard & Qualità": 4.7, "Sviluppo Competenze": 4.0},
+    "Chimico e Farmaceutico": {"Strategia & Controllo": 3.7, "Digitalizzazione": 3.9, "Gestione HR": 3.8, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 4.2, "Protezione Legale": 4.5, "Sicurezza sul Lavoro": 4.9, "Standard & Qualità": 4.8, "Sviluppo Competenze": 3.9},
+    "Energia e Utilities (Gas, Luce, Acqua)": {"Strategia & Controllo": 3.9, "Digitalizzazione": 4.0, "Gestione HR": 3.8, "Finanza & Investimenti": 4.0, "Sostenibilità (ESG)": 4.5, "Protezione Legale": 4.0, "Sicurezza sul Lavoro": 4.6, "Standard & Qualità": 4.3, "Sviluppo Competenze": 3.7},
+    "Costruzioni ed Edilizia": {"Strategia & Controllo": 2.8, "Digitalizzazione": 2.5, "Gestione HR": 2.9, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 2.7, "Protezione Legale": 3.4, "Sicurezza sul Lavoro": 4.7, "Standard & Qualità": 3.4, "Sviluppo Competenze": 2.8},
+    "Elettronica ed Elettrotecnica": {"Strategia & Controllo": 3.5, "Digitalizzazione": 4.0, "Gestione HR": 3.5, "Finanza & Investimenti": 3.4, "Sostenibilità (ESG)": 3.2, "Protezione Legale": 3.6, "Sicurezza sul Lavoro": 4.0, "Standard & Qualità": 4.3, "Sviluppo Competenze": 3.9},
+    "Gomma e Materie Plastiche": {"Strategia & Controllo": 3.1, "Digitalizzazione": 3.0, "Gestione HR": 3.1, "Finanza & Investimenti": 3.3, "Sostenibilità (ESG)": 3.0, "Protezione Legale": 3.2, "Sicurezza sul Lavoro": 4.4, "Standard & Qualità": 3.9, "Sviluppo Competenze": 3.0},
+    "Carta e Stampa (Packaging ed Editoria)": {"Strategia & Controllo": 3.3, "Digitalizzazione": 3.4, "Gestione HR": 3.2, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.7, "Protezione Legale": 3.3, "Sicurezza sul Lavoro": 4.1, "Standard & Qualità": 4.0, "Sviluppo Competenze": 3.1},
+    "ICT e Digitale (Software e Tecnologie)": {"Strategia & Controllo": 4.0, "Digitalizzazione": 4.8, "Gestione HR": 4.2, "Finanza & Investimenti": 3.6, "Sostenibilità (ESG)": 3.5, "Protezione Legale": 4.0, "Sicurezza sul Lavoro": 3.0, "Standard & Qualità": 3.8, "Sviluppo Competenze": 4.5},
+    "Logistica e Trasporti": {"Strategia & Controllo": 3.4, "Digitalizzazione": 3.8, "Gestione HR": 3.3, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.2, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.3, "Standard & Qualità": 3.7, "Sviluppo Competenze": 3.2},
+    "Turismo e Ristorazione (Horeca)": {"Strategia & Controllo": 2.9, "Digitalizzazione": 3.2, "Gestione HR": 3.5, "Finanza & Investimenti": 2.8, "Sostenibilità (ESG)": 3.3, "Protezione Legale": 3.1, "Sicurezza sul Lavoro": 3.8, "Standard & Qualità": 3.5, "Sviluppo Competenze": 3.4},
+    "Bancario e Assicurativo": {"Strategia & Controllo": 4.5, "Digitalizzazione": 4.3, "Gestione HR": 4.0, "Finanza & Investimenti": 4.5, "Sostenibilità (ESG)": 4.2, "Protezione Legale": 4.8, "Sicurezza sul Lavoro": 3.5, "Standard & Qualità": 4.6, "Sviluppo Competenze": 4.2},
+    "Sanità e Servizi Sociali": {"Strategia & Controllo": 3.8, "Digitalizzazione": 3.5, "Gestione HR": 4.0, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.7, "Protezione Legale": 4.2, "Sicurezza sul Lavoro": 4.6, "Standard & Qualità": 4.5, "Sviluppo Competenze": 3.9}
 }
 
 # --- INIZIALIZZAZIONE STATI ---
@@ -21,79 +48,79 @@ if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_client_piva' not in st.session_state: st.session_state.current_client_piva = None
 if 'rev_index' not in st.session_state: st.session_state.rev_index = -1 
 
-# --- DATABASE INTEGRALE 54 DOMANDE ---
+# --- DATABASE INTEGRALE 54 DOMANDE (Testi sintetizzati per brevità nello script) ---
 DOMANDE_MATRICE = {
     'Strategia & Controllo': [
-        ("Esiste un Business Plan triennale?", {1: "Assente", 2: "Solo budget", 3: "12 mesi", 4: "Triennale", 5: "Revisione trimestrale"}),
-        ("Monitorate KPI (margini, EBITDA)?", {1: "No", 2: "Solo bilancio", 3: "Excel", 4: "Dashboard", 5: "BI Real-time"}),
-        ("Ruoli e responsabilità sono chiari?", {1: "No", 2: "Verbali", 3: "Organigramma base", 4: "Mansionari", 5: "Struttura manageriale"}),
-        ("Analizzate i competitor regolarmente?", {1: "Mai", 2: "Raro", 3: "Annuale", 4: "Sistematico", 5: "Data-driven"}),
-        ("Il titolare delega l'operatività?", {1: "No", 2: "Minimo", 3: "Prime deleghe", 4: "Autonomia", 5: "Delega totale"}),
-        ("Esiste un piano di passaggio generazionale?", {1: "No", 2: "Discusso", 3: "Consapevolezza", 4: "Bozza", 5: "Formalizzato"})
+        ("Business Plan triennale?", {1: "No", 2: "Budget", 3: "12m", 4: "3y", 5: "Rev trim"}),
+        ("Monitoraggio KPI?", {1: "No", 2: "Bilancio", 3: "Excel", 4: "Dashboard", 5: "BI"}),
+        ("Ruoli definiti?", {1: "No", 2: "Verbali", 3: "Base", 4: "Mansionari", 5: "Manager"}),
+        ("Analisi Competitor?", {1: "No", 2: "Raro", 3: "Annuale", 4: "Sempre", 5: "Data-driven"}),
+        ("Delega operativa?", {1: "No", 2: "Minima", 3: "Prime deleghe", 4: "Autonomia", 5: "Manageriale"}),
+        ("Passaggio generazionale?", {1: "No", 2: "Discusso", 3: "Idea", 4: "Bozza", 5: "Formalizzato"})
     ],
     'Digitalizzazione': [
-        ("Il gestionale ERP copre tutta l'azienda?", {1: "No", 2: "Base", 3: "Settoriale", 4: "Integrato", 5: "Cloud/Evoluto"}),
-        ("Grado di digitalizzazione processi (Paperless)?", {1: "Carta", 2: "Misto", 3: "Digitale base", 4: "Digitale", 5: "Automazione"}),
-        ("Usate un CRM per i clienti?", {1: "No", 2: "Contatti", 3: "Offerte", 4: "Integrato", 5: "Marketing Automation"}),
-        ("Avete protocolli di Cybersecurity?", {1: "No", 2: "Minimo", 3: "Backup", 4: "Audit", 5: "Standard massimi"}),
-        ("Investite in Digital Marketing?", {1: "No", 2: "Sito", 3: "Social", 4: "Lead Gen", 5: "Omnicanale"}),
-        ("Usate strumenti di AI nei processi?", {1: "No", 2: "Test", 3: "Base", 4: "Operativa", 5: "AI-driven"})
+        ("Sistema ERP?", {1: "No", 2: "Base", 3: "Settore", 4: "Integrato", 5: "Evoluto"}),
+        ("Processi Paperless?", {1: "Carta", 2: "Misto", 3: "Digitale", 4: "Avanzato", 5: "Auto"}),
+        ("CRM attivo?", {1: "No", 2: "Contatti", 3: "Offerte", 4: "Integrato", 5: "Automation"}),
+        ("Cybersecurity?", {1: "No", 2: "Minima", 3: "Backup", 4: "Audit", 5: "Certificato"}),
+        ("Marketing Digital?", {1: "No", 2: "Sito", 3: "Social", 4: "Ads", 5: "Lead Gen"}),
+        ("Uso AI?", {1: "No", 2: "Studio", 3: "Test", 4: "Operativa", 5: "Driven"})
     ],
     'Gestione HR': [
-        ("Esiste un piano Welfare?", {1: "No", 2: "Minimo", 3: "Base", 4: "Strutturato", 5: "Evoluto"}),
-        ("Misurate le performance dei dipendenti?", {1: "No", 2: "Informale", 3: "Annuale", 4: "MBO", 5: "Feedback continuo"}),
-        ("Attrattività per nuovi talenti?", {1: "Bassa", 2: "Passiva", 3: "Networking", 4: "Branding", 5: "Top Employer"}),
-        ("Monitorate il clima aziendale?", {1: "No", 2: "Raro", 3: "Annuale", 4: "Sistematico", 5: "Benessere core"}),
-        ("Piani di formazione continua?", {1: "No", 2: "Obbligo", 3: "Sporadica", 4: "Annuale", 5: "Academy"}),
-        ("Smart working o flessibilità?", {1: "No", 2: "Eccezioni", 3: "Flessibilità", 4: "Policy", 5: "Per obiettivi"})
+        ("Piano Welfare?", {1: "No", 2: "Minimo", 3: "Base", 4: "Strutturato", 5: "Evoluto"}),
+        ("Performance Mgt?", {1: "No", 2: "Informale", 3: "Annuo", 4: "MBO", 5: "Continuo"}),
+        ("Talent Retention?", {1: "No", 2: "Passiva", 3: "Base", 4: "Branding", 5: "Leader"}),
+        ("Clima aziendale?", {1: "No", 2: "Raro", 3: "Sì", 4: "Sistemico", 5: "Top"}),
+        ("Upskilling?", {1: "No", 2: "Obbligo", 3: "Sporadico", 4: "Annuale", 5: "Academy"}),
+        ("Smart Working?", {1: "No", 2: "Raro", 3: "Flessibile", 4: "Policy", 5: "Obiettivi"})
     ],
     'Finanza & Investimenti': [
-        ("Previsioni di tesoreria (Cash Flow)?", {1: "No", 2: "Settimana", 3: "Mensile", 4: "Trimestre", 5: "Real-time"}),
-        ("Sfruttate la Finanza Agevolata?", {1: "No", 2: "Raro", 3: "Occasionale", 4: "Pianificato", 5: "Strategico"}),
-        ("Monitorate il rating bancario?", {1: "No", 2: "Vago", 3: "Annuale", 4: "Costante", 5: "Ottimizzazione"}),
-        ("Marginalità per prodotto/commessa?", {1: "No", 2: "Globale", 3: "Stima", 4: "Analitica", 5: "Predittiva"}),
-        ("Gestione recupero crediti?", {1: "No", 2: "Reattiva", 3: "Procedura", 4: "Assicurazione", 5: "Sistemica"}),
-        ("Investimenti in R&S sul fatturato?", {1: "0%", 2: "1%", 3: "2%", 4: "5%", 5: ">5%"})
+        ("Cash Flow?", {1: "No", 2: "Breve", 3: "Mese", 4: "Trim", 5: "Real-time"}),
+        ("Finanza Agevolata?", {1: "No", 2: "Raro", 3: "Base", 4: "Pianificato", 5: "Strategico"}),
+        ("Rating Bancario?", {1: "No", 2: "Vago", 3: "Annuale", 4: "Costante", 5: "Ottimo"}),
+        ("Marginalità?", {1: "No", 2: "Global", 3: "Stima", 4: "Analitica", 5: "Predittiva"}),
+        ("Recupero Crediti?", {1: "No", 2: "Reattiva", 3: "Sì", 4: "Interno", 5: "Sistemico"}),
+        ("Budget R&D?", {1: "0%", 2: "1%", 3: "2%", 4: "5%", 5: ">5%"})
     ],
     'Sostenibilità (ESG)': [
-        ("Conoscenza criteri ESG?", {1: "No", 2: "Vaga", 3: "Base", 4: "Integrazione", 5: "Bilancio ESG"}),
-        ("Riduzione impatto ambientale?", {1: "No", 2: "Rifiuti", 3: "Energia", 4: "ISO 14001", 5: "Carbon Neutral"}),
-        ("Inclusione e parità di genere?", {1: "No", 2: "Base", 3: "Azioni", 4: "Policy", 5: "Certificazione"}),
-        ("Etica e trasparenza (Governance)?", {1: "No", 2: "Base", 3: "Codice Etico", 4: "Compliance", 5: "Trasparenza"}),
-        ("Valutazione ESG dei fornitori?", {1: "No", 2: "Raro", 3: "Questionari", 4: "Audit", 5: "Partnership"}),
-        ("Certificazioni Green?", {1: "No", 2: "Studio", 3: "Base", 4: "Multiple", 5: "Rating Gold/B-Corp"})
+        ("Criteri ESG?", {1: "No", 2: "Pochi", 3: "Base", 4: "Integrazione", 5: "Bilancio"}),
+        ("Impatto Ambientale?", {1: "No", 2: "Rifiuti", 3: "Energia", 4: "ISO14001", 5: "Zero"}),
+        ("Parità Genere?", {1: "No", 2: "Sensibile", 3: "Sì", 4: "Policy", 5: "Certificato"}),
+        ("Governance?", {1: "No", 2: "Minima", 3: "Etica", 4: "Piena", 5: "Trasparente"}),
+        ("Supply Chain ESG?", {1: "No", 2: "Raro", 3: "Sì", 4: "Audit", 5: "Partner"}),
+        ("Certificazioni?", {1: "No", 2: "1", 3: "Base", 4: "Multi", 5: "B-Corp"})
     ],
     'Protezione Legale': [
-        ("Modello 231 implementato?", {1: "No", 2: "In corso", 3: "Adottato", 4: "Aggiornato", 5: "ODV attivo"}),
-        ("Conformità GDPR?", {1: "No", 2: "Minima", 3: "Conforme", 4: "Audit", 5: "DPO presente"}),
-        ("Contrattualistica aggiornata?", {1: "Standard", 2: "Base", 3: "Revisionata", 4: "Ad hoc", 5: "Legal Management"}),
-        ("Tutela marchi e brevetti (IP)?", {1: "No", 2: "Marchio", 3: "Protetto", 4: "Attivo", 5: "Asset strategico"}),
-        ("Sistema recupero crediti legale?", {1: "No", 2: "Sporadico", 3: "Protocollo", 4: "Interno", 5: "Massima efficienza"}),
-        ("Polizze D&O o Cyber Risk?", {1: "No", 2: "Base", 3: "RC", 4: "D&O/Cyber", 5: "Broker dedicato"})
+        ("Modello 231?", {1: "No", 2: "Bozza", 3: "Adottato", 4: "Aggiornato", 5: "ODV"}),
+        ("GDPR Compliance?", {1: "No", 2: "Base", 3: "Sì", 4: "Audit", 5: "DPO"}),
+        ("Contrattualistica?", {1: "Standard", 2: "Base", 3: "Revisionata", 4: "Ad hoc", 5: "Legal Mgt"}),
+        ("IP/Brevetti?", {1: "No", 2: "Marchio", 3: "Sì", 4: "Attivo", 5: "Asset"}),
+        ("Recupero Legale?", {1: "No", 2: "Raro", 3: "Sì", 4: "Interno", 5: "Efficienza"}),
+        ("D&O Insurance?", {1: "No", 2: "RC", 3: "Base", 4: "D&O", 5: "Cyber/D&O"})
     ],
     'Sicurezza sul Lavoro': [
-        ("DVR aggiornato e dinamico?", {1: "No", 2: "Vecchio", 3: "Base", 4: "Digitale", 5: "Evolutivo"}),
-        ("Formazione sicurezza tracciata?", {1: "No", 2: "Parziale", 3: "Sì", 4: "Digitale", 5: "Zero scadenze"}),
-        ("Sorveglianza sanitaria regolare?", {1: "No", 2: "Base", 3: "Sì", 4: "Monitorata", 5: "Eccellenza"}),
-        ("Consegna DPI tracciata?", {1: "No", 2: "Verbale", 3: "Sì", 4: "Digitale", 5: "Automatico"}),
-        ("Piano manutenzione impianti?", {1: "No", 2: "Guasto", 3: "Base", 4: "Programmata", 5: "Predittiva"}),
-        ("Analisi dei 'Near Miss'?", {1: "No", 2: "Raro", 3: "Gravi", 4: "Sempre", 5: "Cultura prevenzione"})
+        ("DVR?", {1: "No", 2: "Vecchio", 3: "Aggiornato", 4: "Digitale", 5: "Proattivo"}),
+        ("Formazione?", {1: "No", 2: "Base", 3: "Sì", 4: "Tracciata", 5: "Zero scadenze"}),
+        ("Sorveglianza?", {1: "No", 2: "Base", 3: "Sì", 4: "Piena", 5: "Eclatante"}),
+        ("DPI Tracciati?", {1: "No", 2: "Verbale", 3: "Cartaceo", 4: "Digitale", 5: "Auto"}),
+        ("Manutenzioni?", {1: "No", 2: "Guasto", 3: "Base", 4: "Programmata", 5: "Predittiva"}),
+        ("Near Miss?", {1: "No", 2: "Raro", 3: "Gravi", 4: "Sempre", 5: "Target Zero"})
     ],
     'Standard & Qualità': [
-        ("ISO 9001 reale e attiva?", {1: "No", 2: "Formale", 3: "Sì", 4: "Ottima", 5: "Eccellenza"}),
-        ("Processi mappati e scritti?", {1: "No", 2: "Minimo", 3: "Core", 4: "Tutti", 5: "Kaizen"}),
-        ("Audit interni regolari?", {1: "No", 2: "Raro", 3: "Annuale", 4: "Sempre", 5: "Auto-miglioramento"}),
-        ("Misurazione Customer Satisfaction?", {1: "No", 2: "Reclami", 3: "Sondaggi", 4: "NPS", 5: "Customer Centric"}),
-        ("Qualifica fornitori (KPI)?", {1: "No", 2: "Base", 3: "Sì", 4: "Monitorati", 5: "Partnership"}),
-        ("Gestione Non Conformità?", {1: "No", 2: "Base", 3: "Sì", 4: "Analisi Cause", 5: "Risoluzione Radice"})
+        ("ISO 9001?", {1: "No", 2: "Formale", 3: "Attiva", 4: "Sì", 5: "Eccellenza"}),
+        ("Procedure mappate?", {1: "No", 2: "Minimo", 3: "Core", 4: "Tutte", 5: "Kaizen"}),
+        ("Audit interni?", {1: "No", 2: "Raro", 3: "Annuo", 4: "Sempre", 5: "Culture"}),
+        ("NPS Cliente?", {1: "No", 2: "Reclami", 3: "Sondaggio", 4: "NPS", 5: "Centric"}),
+        ("Qualifica Fornitori?", {1: "No", 2: "Base", 3: "Sì", 4: "Rating", 5: "Partner"}),
+        ("Gestione NC?", {1: "No", 2: "Base", 3: "Sì", 4: "Cause", 5: "Root Solve"})
     ],
     'Sviluppo Competenze': [
-        ("Analisi gap competenze?", {1: "No", 2: "Vaga", 3: "Base", 4: "Analitica", 5: "Strategica"}),
-        ("Uso fondi interprofessionali?", {1: "No", 2: "Iscritti", 3: "Raro", 4: "Sempre", 5: "Massimizzazione"}),
-        ("Academy interna/Condivisione?", {1: "No", 2: "Minimo", 3: "Tutor", 4: "Manuali", 5: "Academy"}),
-        ("Formazione Leadership/Manager?", {1: "No", 2: "Minimo", 3: "Soft Skills", 4: "Coaching", 5: "Leadership diffusa"}),
-        ("Piani di carriera definiti?", {1: "No", 2: "Vaghi", 3: "Sì", 4: "Chiariti", 5: "Meritocrazia"}),
-        ("Apertura all'innovazione (Mindset)?", {1: "No", 2: "Resistenza", 3: "Base", 4: "Aperti", 5: "Proattivi"})
+        ("Gap Analysis?", {1: "No", 2: "Vaga", 3: "Sì", 4: "Analitica", 5: "Strategica"}),
+        ("Fondi Formazione?", {1: "No", 2: "Raro", 3: "Sì", 4: "Sempre", 5: "Massimo"}),
+        ("Academy Interna?", {1: "No", 2: "Tutor", 3: "Sì", 4: "Manuali", 5: "Academy"}),
+        ("Leadership Training?", {1: "No", 2: "Minimo", 3: "Soft", 4: "Coaching", 5: "Diffusa"}),
+        ("Piani Carriera?", {1: "No", 2: "Vaghi", 3: "Sì", 4: "Certi", 5: "Merito"}),
+        ("Mindset Digital?", {1: "No", 2: "Resistenza", 3: "Aperti", 4: "Pronti", 5: "Innovatori"})
     ]
 }
 
@@ -117,7 +144,7 @@ if st.session_state.page == "Anagrafica":
         with col1:
             azienda = st.text_input("Ragione Sociale")
             piva = st.text_input("Partita IVA")
-            indirizzo = st.text_input("Indirizzo Aziendale (Via, Civico, CAP, Città)")
+            indirizzo = st.text_input("Indirizzo Aziendale")
         with col2:
             settore = st.selectbox("Settore", list(BENCHMARK_DATI.keys()))
             regione = st.selectbox("Regione", ["Lombardia", "Veneto", "Emilia-Romagna", "Piemonte", "Lazio", "Campania", "Altro"])
@@ -126,21 +153,9 @@ if st.session_state.page == "Anagrafica":
             if azienda and piva:
                 st.session_state.current_client_piva = piva
                 if piva not in st.session_state.clienti:
-                    st.session_state.clienti[piva] = {
-                        "anagrafica": {
-                            "azienda": azienda, 
-                            "piva": piva, 
-                            "indirizzo": indirizzo,
-                            "settore": settore, 
-                            "regione": regione
-                        }, 
-                        "revisioni": []
-                    }
+                    st.session_state.clienti[piva] = {"anagrafica": {"azienda": azienda, "piva": piva, "indirizzo": indirizzo, "settore": settore, "regione": regione}, "revisioni": []}
                 else:
-                    # Aggiorna anagrafica esistente
-                    st.session_state.clienti[piva]["anagrafica"].update({
-                        "azienda": azienda, "indirizzo": indirizzo, "settore": settore, "regione": regione
-                    })
+                    st.session_state.clienti[piva]["anagrafica"].update({"azienda": azienda, "indirizzo": indirizzo, "settore": settore, "regione": regione})
                 st.success("Anagrafica salvata!")
                 go_to("Questionario")
                 st.rerun()
@@ -148,9 +163,9 @@ if st.session_state.page == "Anagrafica":
 # --- PAGINA 2: QUESTIONARIO ---
 elif st.session_state.page == "Questionario":
     piva = st.session_state.current_client_piva
-    if not piva: st.warning("Seleziona o crea un cliente in Anagrafica.")
+    if not piva: st.warning("Seleziona un cliente in Anagrafica.")
     else:
-        st.header(f"📝 Nuova Revisione: {st.session_state.clienti[piva]['anagrafica']['azienda']}")
+        st.header(f"📝 Assessment: {st.session_state.clienti[piva]['anagrafica']['azienda']}")
         scores = {}
         tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
         for i, area in enumerate(DOMANDE_MATRICE.keys()):
@@ -161,33 +176,37 @@ elif st.session_state.page == "Questionario":
                     p_area.append(val)
                 scores[area] = sum(p_area)/len(p_area)
         
-        if st.button("Salva Assessment come Revisione"):
-            st.session_state.clienti[piva]['revisioni'].append({
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"), 
-                "punteggi": scores, 
-                "analisi_ai": ""
-            })
+        if st.button("Salva Revisione"):
+            st.session_state.clienti[piva]['revisioni'].append({"data": datetime.now().strftime("%d/%m/%Y %H:%M"), "punteggi": scores, "analisi_ai": ""})
             st.session_state.rev_index = len(st.session_state.clienti[piva]['revisioni']) - 1
             go_to("Valutazione")
             st.rerun()
 
-# --- PAGINA 3: RADAR & AI ---
+# --- PAGINA 3: RADAR & AI (CON FUNZIONE DI STAMPA) ---
 elif st.session_state.page == "Valutazione":
     piva = st.session_state.current_client_piva
-    if not piva or not st.session_state.clienti[piva]['revisioni']: st.warning("Nessun dato disponibile.")
+    if not piva or not st.session_state.clienti[piva]['revisioni']: st.warning("Dati mancanti.")
     else:
         cliente = st.session_state.clienti[piva]
         rev = cliente['revisioni'][st.session_state.rev_index]
-        st.header(f"📊 Report Revisione: {rev['data']}")
-        st.caption(f"Azienda: {cliente['anagrafica']['azienda']} | Sede: {cliente['anagrafica']['indirizzo']}")
         
+        # Intestazione professionale
+        col_logo, col_info = st.columns([1, 2])
+        with col_logo: st.image("https://www.nextahub.it/wp-content/uploads/2023/05/logo-nextahub.png", width=250)
+        with col_info: st.markdown(f"### REPORT STRATEGICO NEXTAHUB\n**Azienda:** {cliente['anagrafica']['azienda']} | **P.IVA:** {piva}\n**Indirizzo:** {cliente['anagrafica']['indirizzo']}\n**Settore:** {cliente['anagrafica']['settore']} | **Data:** {rev['data']}")
+
+        if st.button("🖨️ Stampa Report / Salva PDF"):
+            st.markdown('<script>window.print();</script>', unsafe_allow_html=True)
+        
+        st.markdown("---")
+
         # Radar
         settore = cliente['anagrafica']['settore']
         categorie = list(rev['punteggi'].keys())
         fig = go.Figure()
         fig.add_trace(go.Scatterpolar(r=list(rev['punteggi'].values()), theta=categorie, fill='toself', name='Cliente', line_color='#e63946'))
         fig.add_trace(go.Scatterpolar(r=[BENCHMARK_DATI[settore].get(c, 3.0) for c in categorie], theta=categorie, name='Benchmark Settore', line_color='gray', line_dash='dash'))
-        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=500)
+        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=600)
         st.plotly_chart(fig, use_container_width=True)
 
         if not rev['analisi_ai']:
@@ -197,53 +216,38 @@ elif st.session_state.page == "Valutazione":
                     models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
                     model_id = next((m for m in models if "flash" in m), models[0])
                     model = genai.GenerativeModel(model_id)
-                    
-                    prompt = f"Analizza l'azienda {cliente['anagrafica']['azienda']} in {cliente['anagrafica']['indirizzo']}. Settore {settore}. Punteggi: {rev['punteggi']}. Benchmark: {BENCHMARK_DATI[settore]}. Fornisci analisi dei gap e 3 consigli strategici."
-                    
-                    with st.spinner("L'AI sta elaborando..."):
+                    prompt = f"Consulente NextaHub. Azienda: {cliente['anagrafica']['azienda']}. Settore {settore}. Punteggi: {rev['punteggi']}. Benchmark: {BENCHMARK_DATI[settore]}. Gap analysis e 3 mosse strategiche."
+                    with st.spinner("Analisi in corso..."):
                         res = model.generate_content(prompt)
                         rev['analisi_ai'] = res.text
                         st.rerun()
-                except Exception as e: st.error(f"Errore AI: {e}")
+                except Exception as e: st.error(f"AI Error: {e}")
         else:
-            st.markdown("### Report Strategico AI")
+            st.markdown("### 🤖 ANALISI STRATEGICA AI")
             st.markdown(rev['analisi_ai'])
 
-# --- PAGINA 4: SERVIZI ---
+# --- PAGINE 4 E 5 ---
 elif st.session_state.page == "Servizi":
     piva = st.session_state.current_client_piva
     if piva and st.session_state.clienti[piva]['revisioni']:
         rev = st.session_state.clienti[piva]['revisioni'][st.session_state.rev_index]
         settore = st.session_state.clienti[piva]['anagrafica']['settore']
-        st.header("💼 Urgenze e Servizi Consigliati")
+        st.header("💼 Piano d'Urgenza")
         c1, c2, c3 = st.columns(3)
         for area, s in rev['punteggi'].items():
             b = BENCHMARK_DATI[settore].get(area, 3.0)
-            if s < 2.5: c1.error(f"🚨 **{area}**: Priorità Alta")
-            elif s < b: c2.warning(f"⚠️ **{area}**: Da migliorare")
-            else: c3.success(f"✅ **{area}**: In linea")
+            if s < 2.5: c1.error(f"🚨 **{area}**")
+            elif s < b: c2.warning(f"⚠️ **{area}**")
+            else: c3.success(f"✅ **{area}**")
 
-# --- PAGINA 5: ARCHIVIO ---
 elif st.session_state.page == "Lista":
-    st.header("📁 Archivio Storico Clienti")
-    if not st.session_state.clienti: st.info("Nessun cliente registrato.")
+    st.header("📁 Archivio Revisioni")
     for p, d in st.session_state.clienti.items():
-        with st.expander(f"🏢 {d['anagrafica']['azienda']} (P.IVA: {p})"):
-            st.write(f"📍 **Indirizzo:** {d['anagrafica'].get('indirizzo', 'Non specificato')}")
-            st.write(f"🏭 **Settore:** {d['anagrafica']['settore']} | 📍 **Regione:** {d['anagrafica']['regione']}")
-            st.markdown("---")
-            st.write("**Revisioni disponibili:**")
+        with st.expander(f"🏢 {d['anagrafica']['azienda']} ({p})"):
+            st.write(f"📍 {d['anagrafica']['indirizzo']} | {d['anagrafica']['settore']}")
             for idx, r in enumerate(d['revisioni']):
-                col_data, col_btn = st.columns([3, 1])
-                col_data.write(f"Analisi del {r['data']}")
-                if col_btn.button("Carica", key=f"v_{p}_{idx}"):
+                if st.button(f"Carica {r['data']}", key=f"v_{p}_{idx}"):
                     st.session_state.current_client_piva = p
                     st.session_state.rev_index = idx
                     go_to("Valutazione")
                     st.rerun()
-            
-            st.markdown("---")
-            if st.button("➕ Nuova Revisione per questo cliente", key=f"n_{p}"):
-                st.session_state.current_client_piva = p
-                go_to("Questionario")
-                st.rerun()
