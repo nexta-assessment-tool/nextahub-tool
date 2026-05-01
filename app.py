@@ -30,76 +30,76 @@ REGIONI = ["Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna", "F
 # --- 3. MATRICE COMPLETA 54 DOMANDE ---
 DOMANDE_MATRICE = {
     'Strategia & Controllo': [
-        ("Piano Strategico", ["Nessun piano", "Verbali", "Budget annuale", "Piano triennale", "Piano dinamico"], None),
-        ("Monitoraggio KPI", ["Assente", "Solo bilancio", "Excel saltuario", "Dashboard", "BI real-time"], None),
-        ("Organigramma", ["Titolare", "Confuso", "Schema base", "Deleghe", "Manager autonomi"], None),
-        ("Analisi Competitor", ["Mai", "Informale", "Annuale", "Costante", "Data-driven"], None),
-        ("Delega", ["Nessuna", "Compiti base", "Capi area", "Responsabilità budget", "Direzione autonoma"], None),
-        ("Passaggio Generazionale", ["Tabù", "Informale", "Successori scelti", "Affiancamento", "Patti famiglia"], None)
+        ("Piano Strategico", ["Nessuna visione formalizzata", "Obiettivi comunicati solo verbalmente", "Budget economico annuale definito", "Piano industriale triennale strutturato", "Pianificazione dinamica con analisi di scenario (What-if)"], None),
+        ("Monitoraggio KPI", ["Nessun indicatore monitorato", "Analisi saltuaria del solo bilancio civilistico", "Monitoraggio tramite file Excel aggiornati manualmente", "Dashboard di controllo integrate per area aziendale", "Sistemi di Business Intelligence in real-time"], None),
+        ("Organigramma e Ruoli", ["Struttura accentrata nel titolare", "Ruoli e responsabilità poco chiari", "Organigramma definito ma poco applicato", "Sistema di deleghe operative e responsabilità chiare", "Manager autonomi con obiettivi di area (Business Unit)"], None),
+        ("Analisi Competitor", ["Nessun monitoraggio della concorrenza", "Analisi informale basata su rumors di mercato", "Analisi annuale dei bilanci dei competitor", "Monitoraggio costante di prezzi e quote di mercato", "Analisi data-driven con benchmark di settore continui"], None),
+        ("Sistema di Delega", ["Il titolare supervisiona ogni minima decisione", "Deleghe limitate a compiti meramente esecutivi", "Capi area con autonomia operativa limitata", "Responsabilità piena su budget e risorse di funzione", "Direzione autonoma con poteri di firma e spesa"], None),
+        ("Passaggio Generazionale", ["Argomento non affrontato (Tabù)", "Discussioni informali senza pianificazione", "Individuazione dei successori e inizio formazione", "Piano di affiancamento strutturato con tutoraggio", "Patti di famiglia o governance duale già definiti"], None)
     ],
     'Digitalizzazione': [
-        ("Infrastruttura IT", ["Obsolescente", "Base", "Server locale", "Cloud ibrido", "Full Cloud"], None),
-        ("ERP/Gestionale", ["Fatture", "Contabilità", "Settoriale", "Integrato", "Ecosistema API"], None),
-        ("Processi Paperless", ["Cartaceo", "Pochi PDF", "Misto", "Digitale", "Workflow automatici"], None),
-        ("Cybersecurity", ["Base", "Backup saltuari", "Firewall", "Audit", "SOC 24/7"], None),
-        ("Marketing Digitale", ["No", "Sito vetrina", "Social", "ADS/SEO", "Lead Gen"], None),
-        ("Innovazione AI", ["No", "Sporadico", "Test area", "Integrata", "AI-driven"], ["ICT e Digitale", "Elettronica", "Meccanica"])
+        ("Infrastruttura IT", ["Hardware obsoleto e rischi di fermo macchina", "Postazioni base con software non aggiornati", "Server locale per gestione dati e backup", "Architettura in cloud ibrido protetta", "Infrastruttura Full Cloud scalabile e ridondata"], None),
+        ("ERP/Gestionale", ["Solo software di fatturazione elettronica", "Gestione contabile e amministrativa base", "Software settoriale non collegato ad altre aree", "Sistema integrato (ERP) tra acquisti, magazzino e vendite", "Ecosistema interconnesso tramite API con CRM e logistica"], None),
+        ("Processi Paperless", ["Gestione quasi totalmente cartacea", "Digitalizzazione limitata ai soli documenti fiscali", "Sistema misto con parziale archiviazione digitale", "Processi documentali nativi digitali", "Workflow approvativi automatici senza carta"], None),
+        ("Cybersecurity", ["Nessuna protezione se non antivirus base", "Backup saltuari su dischi esterni", "Presenza di Firewall e policy password", "Audit periodici e Disaster Recovery plan", "Monitoraggio proattivo SOC 24/7 e cyber-insurance"], None),
+        ("Marketing Digitale", ["Nessuna presenza online", "Sito web vetrina non aggiornato", "Presenza attiva sui social media principali", "Strategie di ADS e SEO per acquisizione traffico", "Sistema di Lead Generation integrato al CRM"], None),
+        ("Innovazione AI", ["Nessuna conoscenza delle potenzialità AI", "Utilizzo sporadico di strumenti AI generativa (es. Chat)", "Sperimentazione di AI in singole aree pilota", "Processi aziendali con AI integrata internamente", "Modello di business AI-driven con automazione avanzata"], ["ICT e Digitale", "Elettronica", "Meccanica"])
     ],
     'Gestione HR': [
-        ("Welfare", ["No", "Rimborsi", "Convenzioni", "Piattaforma", "Benefit evoluti"], None),
-        ("Valutazione", ["No", "Sensazioni", "Annuale", "MBO/KPI", "Feedback 360"], None),
-        ("Retention", ["Fuga", "Media", "Bonus", "Employer Branding", "Top Employer"], None),
-        ("Clima Aziendale", ["Tensioni", "Ignorato", "Saltuario", "Indagine str.", "Monitoraggio cont."], None),
-        ("Formazione", ["Solo Legge", "Rari", "Budget dedicato", "Piani crescita", "Academy"], None),
-        ("Smart Working", ["No", "Rara", "Flessibile", "Smart str.", "Anywhere"], None)
+        ("Welfare Aziendale", ["Nessun piano di welfare", "Solo rimborsi spese e indennità base", "Convenzioni locali per i dipendenti", "Piattaforma welfare con ampia scelta di servizi", "Piano di benefit evoluto e personalizzato (flexible benefits)"], None),
+        ("Valutazione Performance", ["Nessun sistema di valutazione", "Valutazione basata su sensazioni del titolare", "Colloquio di valutazione annuale qualitativo", "Sistema di MBO collegato a KPI quantitativi", "Valutazione continua con feedback a 360 gradi"], None),
+        ("Retention e Talent", ["Alto turnover (i dipendenti se ne vanno)", "Turnover nella media di settore", "Politiche di bonus legati all'anzianità", "Strategia di Employer Branding strutturata", "Certificazione Top Employer e bassissimo turnover"], None),
+        ("Clima Aziendale", ["Presenza di forti tensioni interne", "Il clima non viene monitorato", "Ascolto saltuario dei dipendenti", "Indagine sul clima aziendale periodica e strutturata", "Monitoraggio continuo del benessere lavorativo"], None),
+        ("Formazione", ["Solo corsi obbligatori per legge (sicurezza)", "Formazione tecnica sporadica su richiesta", "Budget annuale dedicato alla formazione", "Piani di crescita professionale personalizzati", "Academy aziendale interna per lo sviluppo dei talenti"], None),
+        ("Flessibilità e Smart Working", ["Presenza obbligatoria in ufficio 5/5", "Concessione dello smart working solo in emergenza", "Regolamento per flessibilità oraria e smart working", "Smart working strutturato come leva di produttività", "Lavoro agile basato su obiettivi (Work from anywhere)"], None)
     ],
     'Finanza & Investimenti': [
-        ("Cash Flow", ["No", "Saldo banca", "Mensile", "Previsionale 6m", "Tesoreria AI"], None),
-        ("Finanza Agevolata", ["Mai", "Casuale", "Bandi base", "Monitoraggio", "Strategica"], None),
-        ("Rating Bancario", ["No", "Vago", "Annuo", "Trimestrale", "Ottimizzazione"], None),
-        ("Marginalità", ["Utile fine anno", "Stime", "Per commessa", "Analitica", "Predittiva"], None),
-        ("Gestione Credito", ["Reattiva", "Solleciti", "Scritta", "Ufficio dedicato", "Assicurazione"], None),
-        ("Investimenti R&S", ["0%", "Reattiva", "1-2%", "5%", ">5%"], None)
+        ("Analisi Cash Flow", ["Nessun controllo dei flussi di cassa", "Monitoraggio basato solo sul saldo banca", "Rendiconto finanziario consuntivo mensile", "Previsionale di tesoreria a 6 mesi", "Gestione della liquidità con software di tesoreria predittiva"], None),
+        ("Finanza Agevolata", ["Mai richiesti contributi o agevolazioni", "Richiesta casuale di bandi molto semplici", "Utilizzo regolare di crediti d'imposta base", "Monitoraggio sistematico di bandi regionali e nazionali", "Utilizzo strategico della finanza agevolata per investimenti"], None),
+        ("Rating Bancario", ["Sconosciuto o mai monitorato", "Conoscenza vaga dei criteri di rating", "Analisi annuale della Centrale Rischi", "Monitoraggio trimestrale degli indicatori bancari", "Strategia attiva di ottimizzazione del merito creditizio"], None),
+        ("Analisi Marginalità", ["Si conosce l'utile solo a fine anno", "Stime approssimative dei margini sui prodotti", "Calcolo della marginalità per singola commessa", "Contabilità analitica evoluta per centri di costo", "Modelli di marginalità predittiva e analisi dei gap"], None),
+        ("Gestione del Credito", ["Reattiva (si sollecita quando manca cassa)", "Solleciti telefonici saltuari ai clienti", "Policy di recupero crediti scritta e formalizzata", "Ufficio recupero crediti dedicato e procedure rigorose", "Assicurazione del credito e cessione pro-soluto"], None),
+        ("Investimenti R&S", ["Nessun investimento in innovazione", "Investimenti reattivi solo per guasti o emergenze", "Investimento del 1-2% del fatturato in R&S", "Investimento del 5% del fatturato in innovazione", "Leader di mercato con oltre il 5% investito stabilmente"], None)
     ],
     'Sostenibilità (ESG)': [
-        ("Cultura ESG", ["No", "Solo legge", "Isolate", "Piano Ind.", "Rating cert."], None),
-        ("Ambiente", ["No", "Differenziata", "Monitoraggio", "Carbon Footprint", "Net Zero"], None),
-        ("Inclusione", ["No", "Sensibilità", "Donne leader", "Policy", "Certificazione"], None),
-        ("Etica", ["No", "Leggi", "Codice Etico", "Bilancio Sost.", "Società Benefit"], None),
-        ("Governance", ["Padronale", "Famigliare", "CdA", "Indipendenti", "Evoluta"], None),
-        ("Fornitori ESG", ["Prezzo", "Vicinanza", "Autocertificazione", "Audit", "Solo cert."], None)
+        ("Cultura ESG", ["Nessuna iniziativa di sostenibilità", "Iniziative limitate agli obblighi di legge", "Azioni di sostenibilità isolate e non coordinate", "Piano di sostenibilità integrato nel piano industriale", "Rating ESG certificato da ente terzo"], None),
+        ("Impatto Ambientale", ["Nessuna attenzione all'impatto ambientale", "Raccolta differenziata e risparmio energetico base", "Monitoraggio dei consumi e delle emissioni", "Calcolo della Carbon Footprint aziendale", "Strategia Net Zero e compensazione certificata"], None),
+        ("Inclusione e Diversità", ["Nessuna policy specifica", "Generica sensibilità ai temi sociali", "Presenza di donne in ruoli di leadership", "Policy formale contro le discriminazioni", "Certificazione per la parità di genere"], None),
+        ("Etica e Trasparenza", ["Nessun codice etico", "Rispetto formale delle leggi vigenti", "Codice Etico adottato e comunicato", "Redazione annuale del Bilancio di Sostenibilità", "Trasformazione giuridica in Società Benefit"], None),
+        ("Governance Sostenibile", ["Modello padronale puro", "Consiglio di famiglia senza membri esterni", "CdA con presenza di consiglieri esperti", "Presenza di consiglieri indipendenti", "Governance evoluta con comitati endo-consiliari"], None),
+        ("Monitoraggio Fornitori", ["Scelta dei fornitori solo in base al prezzo", "Valutazione basata sulla vicinanza geografica", "Richiesta di autocertificazioni ESG ai fornitori", "Audit periodici sulla filiera di fornitura", "Qualifica fornitori solo con certificazioni ESG"], None)
     ],
     'Protezione Legale': [
-        ("Modello 231", ["No", "Studio", "Adottato", "Aggiornato", "ODV attivo"], ["Costruzioni ed Edilizia", "Sanità", "Energia e Utilities"]),
-        ("Privacy/GDPR", ["Base", "Obsoleta", "Conformità", "Audit", "DPO"], None),
-        ("Contrattualistica", ["Verbali", "Web", "Standard", "Ad hoc", "Legal Management"], None),
-        ("Marchi/IP", ["No", "Marchio", "Monitoraggio", "Strategia", "Brevetti"], None),
-        ("Gestione Rischi", ["Emergenza", "Avvocato", "Tutela", "Prevenzione", "Proattiva"], None),
-        ("Asset Protection", ["No", "Polizze", "Holding", "Trust", "Pianificazione"], None)
+        ("Modello 231", ["Modello 231 assente", "Fase di studio o analisi preliminare", "Modello adottato ma statico", "Modello aggiornato regolarmente alle norme", "Presenza di ODV attivo e flussi informativi costanti"], ["Costruzioni ed Edilizia", "Sanità", "Energia e Utilities"]),
+        ("Privacy e GDPR", ["Documentazione base non aggiornata", "Informativa presente ma non conforme", "Piena conformità ai registri del trattamento", "Audit periodici sulla protezione dei dati", "Presenza di un DPO (Data Protection Officer)"], None),
+        ("Contrattualistica", ["Accordi prevalentemente verbali o via mail", "Uso di moduli standard scaricati dal web", "Contratti standard redatti da legali esterni", "Contratti ad hoc per ogni tipologia di cliente/fornitore", "Sistema di Legal Contract Management digitale"], None),
+        ("Marchi e Proprietà Intellettuale", ["Nessuna tutela della proprietà intellettuale", "Registrazione del solo marchio aziendale", "Monitoraggio periodico contro contraffazioni", "Strategia di valorizzazione dei beni immateriali", "Gestione attiva di brevetti e segreti industriali"], None),
+        ("Gestione dei Rischi", ["Intervento legale solo in fase di emergenza", "Rapporto saltuario con avvocato di fiducia", "Tutela legale assicurativa attiva", "Sistema di prevenzione dei rischi contrattuali", "Gestione proattiva e mappatura dei rischi legali"], None),
+        ("Asset Protection", ["Nessuna distinzione tra patrimonio aziendale e privato", "Polizze assicurative a tutela del patrimonio", "Costituzione di holding per segregazione asset", "Utilizzo di strumenti avanzati come Trust o Fondi", "Pianificazione successoria e tutela patrimoniale completa"], None)
     ],
     'Sicurezza sul Lavoro': [
-        ("DVR", ["Scaduto", "Standard", "Regolare", "Dinamico", "Eccellenza"], None),
-        ("Formazione Sicurezza", ["Incompleta", "Legge", "In regola", "Comportamentale", "Cultura"], None),
-        ("Salute", ["No", "Obbligatoria", "Pianificata", "KPI salute", "Prevenzione"], None),
-        ("DPI", ["Libero", "Registro", "Controllo", "Digitale", "IoT"], None),
-        ("Manutenzione", ["Guasto", "Registro", "Programmata", "Software", "Predittiva"], None),
-        ("Appalti/DUVRI", ["No", "DURC", "DUVRI", "Coordinamento", "Audit"], None)
+        ("Documento Valutazione Rischi", ["Documento scaduto o non presente", "DVR standard generico", "DVR aggiornato e conforme alla realtà aziendale", "DVR dinamico aggiornato ad ogni variazione", "Modello di eccellenza oltre i requisiti minimi"], None),
+        ("Formazione Sicurezza", ["Formazione incompleta o non tracciata", "Formazione effettuata solo per obbligo", "Piena regolarità dei corsi e dei rinnovi", "Formazione comportamentale per riduzione infortuni", "Diffusione di una cultura della sicurezza partecipata"], None),
+        ("Sorveglianza Sanitaria", ["Nessuna visita medica effettuata", "Visite mediche minime obbligatorie effettuate", "Pianificazione rigorosa delle scadenze sanitarie", "Monitoraggio di KPI sulla salute dei lavoratori", "Programmi di prevenzione e promozione della salute"], None),
+        ("Gestione DPI", ["DPI consegnati senza registro", "Registro cartaceo di consegna DPI", "Controllo sistematico dell'uso dei DPI", "Gestione digitale delle scadenze DPI", "Utilizzo di DPI intelligenti (IoT) per la sicurezza"], None),
+        ("Manutenzione Impianti", ["Intervento effettuato solo dopo il guasto", "Registro delle manutenzioni obbligatorie", "Pianificazione manutentiva programmata", "Utilizzo di software CMMS per la manutenzione", "Manutenzione predittiva basata su sensori"], None),
+        ("Gestione Appalti (DUVRI)", ["Nessun controllo sulle ditte esterne", "Verifica del solo DURC dei fornitori", "Redazione del DUVRI per ogni interferenza", "Coordinamento attivo e riunioni di sicurezza", "Audit periodici sulla sicurezza dei fornitori in sito"], None)
     ],
     'Standard & Qualità': [
-        ("ISO 9001", ["No", "In corso", "Formale", "Strumento", "Motore"], None),
-        ("Mappatura Processi", ["No", "Parziale", "Procedure", "Mappatura", "Lean"], None),
-        ("Controllo Qualità", ["Fine", "Campione", "Sistemico", "Sensori", "Zero difetti"], None),
-        ("Customer Satisfaction", ["Reclami", "Sondaggio", "Indagine", "NPS", "Co-progettazione"], None),
-        ("Marcatura CE", ["No", "Documentale", "Certificata", "Controllo filiera", "Audit esterni"], ["Meccanica", "Elettronica", "Costruzioni ed Edilizia"]),
-        ("Gestione Non Conformità", ["Risolte", "Excel", "Analisi Cause", "Azioni eff.", "Prevenzione"], None)
+        ("Certificazione ISO 9001", ["Nessun sistema qualità", "Certificazione in fase di ottenimento", "Certificazione vissuta come adempimento formale", "Sistema Qualità usato come strumento gestionale", "La Qualità è il motore del miglioramento continuo"], None),
+        ("Mappatura Processi", ["Nessuna evidenza dei processi aziendali", "Mappatura parziale solo di alcune aree", "Procedure scritte per le attività principali", "Mappatura completa con indicatori di processo", "Approccio Lean per l'eliminazione degli sprechi"], None),
+        ("Controllo Qualità", ["Controllo finale a vista sui prodotti", "Controllo a campione durante la produzione", "Controllo sistemico con procedure definite", "Monitoraggio tramite sensori e automazione", "Obiettivo 'Zero Difetti' con controllo statistico"], None),
+        ("Customer Satisfaction", ["Gestione dei soli reclami in arrivo", "Sondaggio di soddisfazione saltuario", "Indagine annuale strutturata sui clienti", "Monitoraggio del Net Promoter Score (NPS)", "Co-progettazione dei prodotti con i clienti"], None),
+        ("Marcatura CE", ["Prodotti non marcati o non conformi", "Documentazione tecnica minima presente", "Certificazione completa da laboratori accreditati", "Controllo rigoroso della filiera dei componenti", "Audit esterni periodici sulla conformità prodotto"], ["Meccanica", "Elettronica", "Costruzioni ed Edilizia"]),
+        ("Gestione Non Conformità", ["Risoluzione immediata senza tracciamento", "Registrazione su file Excel delle anomalie", "Analisi delle cause radice (Root Cause Analysis)", "Attuazione sistematica di azioni correttive", "Analisi dei dati per prevenire future non conformità"], None)
     ],
     'Sviluppo Competenze': [
-        ("Gap Analysis", ["Mai", "Urgenze", "Su richiesta", "Annuale", "Mappatura"], None),
-        ("Fondi Interprofessionali", ["Mai", "Rari", "Saltuari", "Sempre", "Ottimizzazione"], None),
-        ("Learning", ["Aula", "Affiancamento", "E-learning", "Mix", "Academy"], None),
-        ("Leadership", ["No", "Titolare", "Manager", "Coaching", "Diffusa"], None),
-        ("Carriera", ["No", "Anzianità", "Crescita", "Percorsi chiari", "Meritocrazia"], None),
-        ("Mindset", ["Resistenza", "Timore", "Pionieri", "Apertura", "DNA"], None)
+        ("Gap Analysis", ["Mai analizzate le competenze necessarie", "Si interviene solo sulle urgenze operative", "Analisi dei bisogni formativi su richiesta", "Mappatura annuale delle competenze richieste", "Gap analysis sistematica tra ruoli e competenze"], None),
+        ("Fondi Interprofessionali", ["Nessun utilizzo di fondi per la formazione", "Utilizzo raro di finanziamenti esterni", "Utilizzo saltuario per corsi specifici", "Formazione sempre finanziata tramite fondi", "Ottimizzazione totale del conto formazione"], None),
+        ("Metodi di Apprendimento", ["Solo formazione frontale in aula", "Affiancamento pratico senza metodo", "Utilizzo di piattaforme E-learning", "Mix di aula, pratica e formazione digitale", "Academy aziendale con percorsi di self-learning"], None),
+        ("Sviluppo Leadership", ["Nessuna delega di leadership", "Solo il titolare prende decisioni chiave", "Manager formati alla gestione dei team", "Coaching individuale per le figure chiave", "Leadership diffusa a tutti i livelli aziendali"], None),
+        ("Piani di Carriera", ["Nessun percorso di crescita previsto", "Progressioni basate solo sull'anzianità", "Criteri di crescita professionale definiti", "Percorsi di carriera chiari e documentati", "Meritocrazia basata su risultati misurabili"], None),
+        ("Mindset e Innovazione", ["Forte resistenza a ogni cambiamento", "Timore verso le nuove tecnologie", "Presenza di pionieri dell'innovazione interni", "Cultura aziendale aperta al cambiamento", "L'innovazione è nel DNA di ogni collaboratore"], None)
     ]
 }
 
