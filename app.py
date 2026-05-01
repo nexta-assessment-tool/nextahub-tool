@@ -107,28 +107,55 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 4. ENGINE AI CON AUTO-RILEVAMENTO ---
+# --- 4. MOTORE DI CONSULENZA AI NEXTAHUB ---
 def analizza_con_gemini(dati_cliente, punteggi):
     try:
-        # Trova modelli disponibili
+        # Auto-rilevamento modello
         validi = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
         scelto = next((x for x in ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro"] if x in validi), validi[0])
-        
         model = genai.GenerativeModel(scelto)
+        
+        # Costruzione del Prompt Strategico
         prompt = f"""
-        Sei il Senior Partner di NextaHub. Analisi per {dati_cliente['azienda']} ({dati_cliente['settore']}, {dati_cliente['regione']}).
-        Punteggi: {json.dumps(punteggi)}
+        Agisci come Senior Partner e Consultant di NextaHub. Il tuo obiettivo è redigere un'analisi strategica che porti il cliente a sottoscrivere i servizi di Nexta.
         
-        COMPITI:
-        1. Crea tabella COMPARATIVA tra Punteggio e Benchmark (calcolato da te in base a regione/settore).
-        2. Analisi GAP e soluzioni NextaHub.
-        3. Roadmap 24 mesi.
+        DATI CLIENTE:
+        - Azienda: {dati_cliente['azienda']}
+        - Settore: {dati_cliente['settore']}
+        - Regione: {dati_cliente['regione']}
         
-        Usa un formato perfetto per Microsoft Word (Markdown pulito).
+        SCORE RILEVATI (scala 1-5):
+        {json.dumps(punteggi, indent=2)}
+        
+        STRUTTURA DEL REPORT (Obbligatoria):
+
+        1. TABELLA COMPARATIVA SCORE VS BENCHMARK
+           - Definisci un benchmark realistico per il settore "{dati_cliente['settore']}" nella regione "{dati_cliente['regione']}".
+           - Crea una tabella con: Area | Score Azienda | Benchmark | Scostamento (Gap).
+           - Spiega brevemente perché il benchmark è settato a quel livello in quella specifica regione.
+
+        2. ANALISI DEI GAP E SOLUZIONI NEXTAHUB
+           - Analizza i gap più critici. Dividili per URGENZA (Alta, Media, Bassa).
+           - Spiega i BENEFICI tangibili (economici, legali, operativi) che l'azienda otterrebbe colmando questi gap.
+           - Collega ogni gap a una soluzione NextaHub.
+
+        3. ROADMAP DI TRASFORMAZIONE (12-24 MESI)
+           - Crea un percorso a tappe (Fase 1: 0-6 mesi, Fase 2: 6-12 mesi, Fase 3: 12-24 mesi).
+           - Definisci priorità e temi di sviluppo.
+
+        4. RESOCONTO CONCLUSIVO E SERVIZI NEXTAHUB (CALL TO ACTION)
+           - Identifica al massimo 2/3 servizi PRIORITARI.
+           - IMPORTANTE: Uno dei servizi prioritari DEVE essere legato alla FINANZA (es. Formazione Finanziata, Transizione 5.0, Bandi Regionali) per spiegare come questo possa FINANZIARE IN PARTE gli altri interventi (es. GDPR, ISO, Project Management).
+           - Elenca i servizi in modo puntuale (es. a) Attivazione GDPR, b) Certificazione ISO 9001, c) Formazione Finanziata).
+
+        TONO: Professionale, autorevole, orientato alla vendita e alla risoluzione dei problemi.
+        FORMATO: Markdown pulito, pronto per essere copiato in un documento Microsoft Word.
         """
-        return model.generate_content(prompt).text
+        
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
-        return f"Errore AI: {str(e)}"
+        return f"❌ Errore durante la generazione del report: {str(e)}"
 
 # --- 5. LOGICA APP ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
