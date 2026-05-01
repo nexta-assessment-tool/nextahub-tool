@@ -110,52 +110,28 @@ DOMANDE_MATRICE = {
 # --- 4. MOTORE DI CONSULENZA AI NEXTAHUB ---
 def analizza_con_gemini(dati_cliente, punteggi):
     try:
-        # Auto-rilevamento modello
         validi = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
         scelto = next((x for x in ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro"] if x in validi), validi[0])
         model = genai.GenerativeModel(scelto)
         
-        # Costruzione del Prompt Strategico
         prompt = f"""
-        Agisci come Senior Partner e Consultant di NextaHub. Il tuo obiettivo è redigere un'analisi strategica che porti il cliente a sottoscrivere i servizi di Nexta.
-        
-        DATI CLIENTE:
-        - Azienda: {dati_cliente['azienda']}
-        - Settore: {dati_cliente['settore']}
-        - Regione: {dati_cliente['regione']}
-        
-        SCORE RILEVATI (scala 1-5):
-        {json.dumps(punteggi, indent=2)}
-        
-        STRUTTURA DEL REPORT (Obbligatoria):
+        Agisci come Senior Partner e Consultant di NextaHub.
+        CLIENTE: {dati_cliente['azienda']} | SETTORE: {dati_cliente['settore']} | REGIONE: {dati_cliente['regione']}
+        COMPILATORE (NextaHub): {dati_cliente['commerciale']}
 
-        1. TABELLA COMPARATIVA SCORE VS BENCHMARK
-           - Definisci un benchmark realistico per il settore "{dati_cliente['settore']}" nella regione "{dati_cliente['regione']}".
-           - Crea una tabella con: Area | Score Azienda | Benchmark | Scostamento (Gap).
-           - Spiega brevemente perché il benchmark è settato a quel livello in quella specifica regione.
+        DATI ASSESSMENT: {json.dumps(punteggi, indent=2)}
 
-        2. ANALISI DEI GAP E SOLUZIONI NEXTAHUB
-           - Analizza i gap più critici. Dividili per URGENZA (Alta, Media, Bassa).
-           - Spiega i BENEFICI tangibili (economici, legali, operativi) che l'azienda otterrebbe colmando questi gap.
-           - Collega ogni gap a una soluzione NextaHub.
+        STRUTTURA REPORT:
+        1. TABELLA COMPARATIVA SCORE VS BENCHMARK (Regionale/Settoriale).
+        2. ANALISI GAP E SOLUZIONI NEXTAHUB (Divise per urgenza, spiegando benefici economici/legali).
+        3. ROADMAP DI TRASFORMAZIONE (12-24 mesi in 3 fasi).
+        4. RESOCONTO CONCLUSIVO (Call to Action su 2/3 servizi prioritari, usando la Finanza Agevolata come leva per finanziare gli altri).
 
-        3. ROADMAP DI TRASFORMAZIONE (12-24 MESI)
-           - Crea un percorso a tappe (Fase 1: 0-6 mesi, Fase 2: 6-12 mesi, Fase 3: 12-24 mesi).
-           - Definisci priorità e temi di sviluppo.
-
-        4. RESOCONTO CONCLUSIVO E SERVIZI NEXTAHUB (CALL TO ACTION)
-           - Identifica al massimo 2/3 servizi PRIORITARI.
-           - IMPORTANTE: Uno dei servizi prioritari DEVE essere legato alla FINANZA (es. Formazione Finanziata, Transizione 5.0, Bandi Regionali) per spiegare come questo possa FINANZIARE IN PARTE gli altri interventi (es. GDPR, ISO, Project Management).
-           - Elenca i servizi in modo puntuale (es. a) Attivazione GDPR, b) Certificazione ISO 9001, c) Formazione Finanziata).
-
-        TONO: Professionale, autorevole, orientato alla vendita e alla risoluzione dei problemi.
-        FORMATO: Markdown pulito, pronto per essere copiato in un documento Microsoft Word.
+        FIRMA: In fondo al documento scrivi "Analisi a cura di: {dati_cliente['commerciale']} - Senior Consultant NextaHub"
         """
-        
-        response = model.generate_content(prompt)
-        return response.text
+        return model.generate_content(prompt).text
     except Exception as e:
-        return f"❌ Errore durante la generazione del report: {str(e)}"
+        return f"❌ Errore AI: {str(e)}"
 
 # --- 5. LOGICA APP ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
@@ -170,7 +146,7 @@ with st.sidebar:
     if st.button("📝 2. Assessment"): st.session_state.page = "Questionario"
     if st.button("📊 3. Report"): st.session_state.page = "Valutazione"
 
-# PAGINA 1: ANAGRAFICA COMPLETA
+# PAGINA 1: ANAGRAFICA
 if st.session_state.page == "Anagrafica":
     st.title("🏢 Anagrafica Cliente")
     with st.form("form_anag"):
@@ -186,11 +162,11 @@ if st.session_state.page == "Anagrafica":
             prov = st.text_input("Provincia")
             settore = st.selectbox("Settore Business *", SETTORI)
             regione = st.selectbox("Regione *", REGIONI)
-            rif_az = st.text_input("Rif. Aziendale")
-            comm = st.text_input("Riferimento Commerciale Nexta")
+            rif_az = st.text_input("Rif. Aziendale (Contatto)")
+            comm = st.text_input("Riferimento Commerciale Nexta * (Nome e Cognome)")
         
         if st.form_submit_button("➡️ Salva e Continua"):
-            if rs and pi and comune and settore:
+            if rs and pi and comune and settore and comm:
                 st.session_state.clienti[pi] = {
                     "info": {"azienda": rs, "piva": pi, "settore": settore, "regione": regione, "comune": comune, "commerciale": comm},
                     "assessments": []
@@ -200,15 +176,13 @@ if st.session_state.page == "Anagrafica":
                 st.rerun()
             else: st.error("Compila i campi obbligatori (*)")
 
-# PAGINA 2: ASSESSMENT 54 DOMANDE
+# PAGINA 2: QUESTIONARIO
 elif st.session_state.page == "Questionario":
     pi = st.session_state.current_piva
     if not pi: st.warning("Torna in anagrafica"); st.stop()
-    
     st.title(f"📝 Assessment: {st.session_state.clienti[pi]['info']['azienda']}")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
     temp_scores = {}
-
     for i, area in enumerate(DOMANDE_MATRICE.keys()):
         with tabs[i]:
             scores = []
@@ -217,48 +191,61 @@ elif st.session_state.page == "Questionario":
                     s = st.radio(f"**{dom}**", [1,2,3,4,5], format_func=lambda x: f"{x}: {opt[x-1]}", key=f"{pi}_{area}_{j}")
                     scores.append(s)
             temp_scores[area] = sum(scores)/len(scores) if scores else 3.0
-
     if st.button("📊 Elabora Risultati"):
         st.session_state.clienti[pi]['assessments'].append({"punteggi": temp_scores, "report_ai": ""})
         st.session_state.page = "Valutazione"
         st.rerun()
 
-# PAGINA 3: RADAR + TABELLA + AI
+# PAGINA 3: VALUTAZIONE (LOGO + RADAR + BARRE COLORE + AI)
 elif st.session_state.page == "Valutazione":
     pi = st.session_state.current_piva
     if not pi: st.stop()
     cl = st.session_state.clienti[pi]
     ass = cl['assessments'][-1]
     
-    st.title(f"📊 Risultati per {cl['info']['azienda']}")
+    # 1. Logo per Stampa
+    st.image(LOGO_URL, width=250)
+    st.title(f"Report Strategico: {cl['info']['azienda']}")
+    st.markdown(f"**Data:** {datetime.now().strftime('%d/%m/%Y')} | **Analista:** {cl['info']['commerciale']}")
     
-    # Calcolo Benchmark (Fittizio per UI, l'AI lo affinerà nel report)
-    bench_val = {"Strategia & Controllo": 3.5, "Digitalizzazione": 3.2, "Gestione HR": 3.4, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 3.1, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 3.9, "Sviluppo Competenze": 3.3}
+    # Benchmark di riferimento (Simulato per Grafica)
+    bench_val = {"Strategia & Controllo": 3.4, "Digitalizzazione": 3.1, "Gestione HR": 3.3, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 3.0, "Protezione Legale": 3.7, "Sicurezza sul Lavoro": 4.1, "Standard & Qualità": 3.8, "Sviluppo Competenze": 3.2}
 
-    col1, col2 = st.columns([2, 1])
-    
+    # Layout Grafici
+    col1, col2 = st.columns(2)
+    categories = list(ass['punteggi'].keys())
+    values = list(ass['punteggi'].values())
+    benchmarks = [bench_val[k] for k in categories]
+    diffs = [v - b for v, b in zip(values, benchmarks)]
+
     with col1:
-        # Radar Chart
-        categories = list(ass['punteggi'].keys())
-        fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='red'))
-        fig.add_trace(go.Scatterpolar(r=[bench_val[k] for k in categories], theta=categories, name='Benchmark Settore', line_color='blue'))
-        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=500)
-        st.plotly_chart(fig, use_container_width=True)
+        st.subheader("Radar Performance")
+        fig_radar = go.Figure()
+        fig_radar.add_trace(go.Scatterpolar(r=values, theta=categories, fill='toself', name='Azienda', line_color='#E63946'))
+        fig_radar.add_trace(go.Scatterpolar(r=benchmarks, theta=categories, name='Benchmark', line_color='#1D3557'))
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), showlegend=True)
+        st.plotly_chart(fig_radar, use_container_width=True)
 
     with col2:
-        # Tabella Scostamenti
-        st.subheader("Tabella Scostamenti")
-        for cat in categories:
-            diff = ass['punteggi'][cat] - bench_val[cat]
-            color = "green" if diff >= 0 else "red"
-            st.markdown(f"**{cat}**: {ass['punteggi'][cat]:.1f} ({diff:+.1f})")
+        st.subheader("Analisi Scostamenti (Gap)")
+        # Logica Colori Barre
+        colors = []
+        for d in diffs:
+            if d >= 0: colors.append('#2D6A4F') # Verde (OK)
+            elif d > -0.5: colors.append('#FFD60A') # Giallo (Lieve)
+            elif d > -1.5: colors.append('#FB8500') # Arancio (Medio)
+            else: colors.append('#AE2012') # Rosso (Critico)
+        
+        fig_bar = go.Figure(go.Bar(x=diffs, y=categories, orientation='h', marker_color=colors))
+        fig_bar.update_layout(xaxis_title="Gap vs Benchmark", yaxis_autorange="reversed")
+        st.plotly_chart(fig_bar, use_container_width=True)
 
     if st.button("🚀 Genera Analisi Strategica AI"):
-        with st.spinner("Analisi in corso..."):
+        with st.spinner("L'AI NextaHub sta elaborando l'analisi..."):
             ass['report_ai'] = analizza_con_gemini(cl['info'], ass['punteggi'])
             st.rerun()
 
     if ass['report_ai']:
         st.markdown("---")
         st.markdown(ass['report_ai'])
+        st.markdown(f"\n\n**Analisi a cura di:** {cl['info']['commerciale']} - Senior Consultant NextaHub")
