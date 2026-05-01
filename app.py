@@ -5,7 +5,7 @@ from datetime import datetime
 
 # --- 1. CONFIGURAZIONE API ---
 # Inserisci la tua API Key qui sotto
-API_KEY = "LA_TUA_API_KEY_QUI"
+API_KEY = "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg"
 
 if API_KEY and API_KEY != "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg":
     try:
