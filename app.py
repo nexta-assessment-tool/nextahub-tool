@@ -12,9 +12,8 @@ def setup_gemini():
         st.error("⚠️ Configura 'GEMINI_API_KEY' nei Secrets di Streamlit.")
         st.stop()
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    return ["gemini-1.5-flash", "gemini-1.5-pro"] # Modelli standard 2026
 
-modelli_disponibili = setup_gemini()
+setup_gemini()
 LOGO_URL = "https://nextahub.it/wp-content/uploads/2026/02/Nexta_Logo_Def_PiccoloHUB.png"
 
 # --- 2. COSTANTI ---
@@ -108,50 +107,35 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 4. ENGINE AI (FIXED FOR 2026 API) ---
+# --- 4. ENGINE AI CON AUTO-RILEVAMENTO ---
 def analizza_con_gemini(dati_cliente, punteggi):
-    # Lista di tentativi con i nomi ufficiali completi
-    tentativi_modelli = [
-        "models/gemini-1.5-flash", 
-        "models/gemini-1.5-pro", 
-        "gemini-1.5-flash",
-        "gemini-pro"
-    ]
-    
-    gap_details = "\n".join([f"- {k}: {v:.1f}/5" for k,v in punteggi.items()])
-    
-    prompt = f"""
-    Sei il Senior Partner di NextaHub. Analisi strategica per {dati_cliente['azienda']}.
-    Settore: {dati_cliente['settore']} | Regione: {dati_cliente['regione']}
-    
-    DATI ASSESSMENT:
-    {gap_details}
-    
-    COMPITI:
-    1. Definisci un BENCHMARK realistico per il settore nella regione {dati_cliente['regione']}.
-    2. Identifica i GAP critici.
-    3. Proponi soluzioni NextaHub specifiche (Transizione 5.0, Certificazioni, Welfare, ecc.).
-    4. Crea una ROADMAP 24 mesi pronta per copia-incolla su Word.
-    """
+    try:
+        # Trova modelli disponibili
+        validi = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        scelto = next((x for x in ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro"] if x in validi), validi[0])
+        
+        model = genai.GenerativeModel(scelto)
+        prompt = f"""
+        Sei il Senior Partner di NextaHub. Analisi per {dati_cliente['azienda']} ({dati_cliente['settore']}, {dati_cliente['regione']}).
+        Punteggi: {json.dumps(punteggi)}
+        
+        COMPITI:
+        1. Crea tabella COMPARATIVA tra Punteggio e Benchmark (calcolato da te in base a regione/settore).
+        2. Analisi GAP e soluzioni NextaHub.
+        3. Roadmap 24 mesi.
+        
+        Usa un formato perfetto per Microsoft Word (Markdown pulito).
+        """
+        return model.generate_content(prompt).text
+    except Exception as e:
+        return f"Errore AI: {str(e)}"
 
-    for model_name in tentativi_modelli:
-        try:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
-            if response.text:
-                return response.text
-        except Exception as e:
-            # Se questo modello fallisce, passa al prossimo della lista
-            ultimo_errore = str(e)
-            continue
-            
-    return f"❌ Errore critico: Nessun modello AI disponibile. Dettaglio: {ultimo_errore}"
-
-# --- 5. INTERFACCIA ---
+# --- 5. LOGICA APP ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
 if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_piva' not in st.session_state: st.session_state.current_piva = None
 
+# Sidebar
 with st.sidebar:
     st.image(LOGO_URL, width=180)
     st.markdown("---")
@@ -159,7 +143,7 @@ with st.sidebar:
     if st.button("📝 2. Assessment"): st.session_state.page = "Questionario"
     if st.button("📊 3. Report"): st.session_state.page = "Valutazione"
 
-# PAGINA 1: ANAGRAFICA
+# PAGINA 1: ANAGRAFICA COMPLETA
 if st.session_state.page == "Anagrafica":
     st.title("🏢 Anagrafica Cliente")
     with st.form("form_anag"):
@@ -167,16 +151,19 @@ if st.session_state.page == "Anagrafica":
         with c1:
             rs = st.text_input("Ragione Sociale *")
             pi = st.text_input("Partita IVA *")
-            settore = st.selectbox("Settore Business *", SETTORI)
-            comm = st.text_input("Riferimento Commerciale Nexta")
-        with c2:
-            regione = st.selectbox("Regione *", REGIONI)
             comune = st.text_input("Comune *")
             via = st.text_input("Via")
+            civico = st.text_input("N. Civico")
+        with c2:
+            cap = st.text_input("CAP")
+            prov = st.text_input("Provincia")
+            settore = st.selectbox("Settore Business *", SETTORI)
+            regione = st.selectbox("Regione *", REGIONI)
             rif_az = st.text_input("Rif. Aziendale")
-
-        if st.form_submit_button("➡️ Prosegui"):
-            if rs and pi and comune:
+            comm = st.text_input("Riferimento Commerciale Nexta")
+        
+        if st.form_submit_button("➡️ Salva e Continua"):
+            if rs and pi and comune and settore:
                 st.session_state.clienti[pi] = {
                     "info": {"azienda": rs, "piva": pi, "settore": settore, "regione": regione, "comune": comune, "commerciale": comm},
                     "assessments": []
@@ -184,11 +171,12 @@ if st.session_state.page == "Anagrafica":
                 st.session_state.current_piva = pi
                 st.session_state.page = "Questionario"
                 st.rerun()
+            else: st.error("Compila i campi obbligatori (*)")
 
-# PAGINA 2: QUESTIONARIO
+# PAGINA 2: ASSESSMENT 54 DOMANDE
 elif st.session_state.page == "Questionario":
     pi = st.session_state.current_piva
-    if not pi: st.warning("Inserisci anagrafica"); st.stop()
+    if not pi: st.warning("Torna in anagrafica"); st.stop()
     
     st.title(f"📝 Assessment: {st.session_state.clienti[pi]['info']['azienda']}")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
@@ -203,30 +191,44 @@ elif st.session_state.page == "Questionario":
                     scores.append(s)
             temp_scores[area] = sum(scores)/len(scores) if scores else 3.0
 
-    if st.button("📊 Genera Report"):
+    if st.button("📊 Elabora Risultati"):
         st.session_state.clienti[pi]['assessments'].append({"punteggi": temp_scores, "report_ai": ""})
         st.session_state.page = "Valutazione"
         st.rerun()
 
-# PAGINA 3: VALUTAZIONE
+# PAGINA 3: RADAR + TABELLA + AI
 elif st.session_state.page == "Valutazione":
     pi = st.session_state.current_piva
-    if not pi or not st.session_state.clienti[pi]['assessments']: st.warning("Dati mancanti"); st.stop()
-    
+    if not pi: st.stop()
     cl = st.session_state.clienti[pi]
     ass = cl['assessments'][-1]
     
-    st.title(f"📊 Analisi {cl['info']['azienda']}")
+    st.title(f"📊 Risultati per {cl['info']['azienda']}")
     
-    # RADAR CHART (FISSA)
-    categories = list(ass['punteggi'].keys())
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='#E63946'))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=500)
-    st.plotly_chart(fig, use_container_width=True)
+    # Calcolo Benchmark (Fittizio per UI, l'AI lo affinerà nel report)
+    bench_val = {"Strategia & Controllo": 3.5, "Digitalizzazione": 3.2, "Gestione HR": 3.4, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 3.1, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 3.9, "Sviluppo Competenze": 3.3}
+
+    col1, col2 = st.columns([2, 1])
     
-    if st.button("🚀 Genera Report AI Word-Ready"):
-        with st.spinner("L'AI sta analizzando settore e regione..."):
+    with col1:
+        # Radar Chart
+        categories = list(ass['punteggi'].keys())
+        fig = go.Figure()
+        fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categories, fill='toself', name='Azienda', line_color='red'))
+        fig.add_trace(go.Scatterpolar(r=[bench_val[k] for k in categories], theta=categories, name='Benchmark Settore', line_color='blue'))
+        fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=500)
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        # Tabella Scostamenti
+        st.subheader("Tabella Scostamenti")
+        for cat in categories:
+            diff = ass['punteggi'][cat] - bench_val[cat]
+            color = "green" if diff >= 0 else "red"
+            st.markdown(f"**{cat}**: {ass['punteggi'][cat]:.1f} ({diff:+.1f})")
+
+    if st.button("🚀 Genera Analisi Strategica AI"):
+        with st.spinner("Analisi in corso..."):
             ass['report_ai'] = analizza_con_gemini(cl['info'], ass['punteggi'])
             st.rerun()
 
