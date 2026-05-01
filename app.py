@@ -75,7 +75,11 @@ if st.button("Genera Analisi Strategica NextaHub"):
         st.error("Inserisci il nome dell'azienda!")
     else:
         try:
-            genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+            if "GEMINI_API_KEY" in st.secrets:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+else:
+    st.error("Chiave non trovata nei Secrets. Assicurati di averla inserita come GEMINI_API_KEY")
+    st.stop()
             model = genai.GenerativeModel('gemini-1.5-flash')
             
             # IL "CERVELLO" DI NEXTAHUB (Basato sulla tua esperienza)
