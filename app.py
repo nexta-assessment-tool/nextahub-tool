@@ -262,7 +262,7 @@ elif st.session_state.page == "Valutazione":
     st.markdown(f"<p style='text-align: center;'><b>Data:</b> {ass['data']} | <b>Analista:</b> {cl['info']['commerciale']}</p>", unsafe_allow_html=True)
 
     # 2. Grafici (Radar e Barre Colorate)
-    bench_val = {"Strategia & Controllo": 3.5, "Digitalizzazione": 3.2, "Gestione HR": 3.4, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 3.1, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 3.9, "Sviluppo Competenze": 3.3}
+    bench_val = {"Strategia & Controllo": 3.5, "Digitalizzazione": 3.2, "Gestione HR": 3.4, "Finanza & Investimenti": 3.0, "Sostenibilità (ESG)": 3.1, "Protezione Legale": 3.8, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 3.9, "Sviluppo Competenze": 3.3, "Mercato & Vendite": 3.0}
     
     c1, c2 = st.columns(2)
     categories = list(ass['punteggi'].keys())
