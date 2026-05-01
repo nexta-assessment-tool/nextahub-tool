@@ -190,27 +190,27 @@ if st.session_state.page == "Anagrafica":
             referente = st.text_input("Nome Referente Aziendale")
             dimensione = st.select_slider("Classe Dimensionale", options=["Micro", "Piccola", "Media", "Grande"])
         
-        if st.form_submit_button("Crea Fascicolo"):
-            if rag_soc and p_iva:
-                # Salvataggio dati estesi
-                st.session_state.clienti[p_iva] = {
-                    "info": {
-                        "azienda": rag_soc, 
-                        "piva": p_iva, 
-                        "via": indirizzo_via,
-                        "civico": indirizzo_civico,
-                        "cap": indirizzo_cap,
-                        "comune": indirizzo_comune,
-                        "provincia": indirizzo_prov,
-                        "settore": settore, 
-                        "referente": referente,
-                        "dimensione": dimensione
-                    },
-                    "assessments": []
-                }
-                st.session_state.current_piva = p_iva
-                st.session_state.page = "Questionario"
-                st.rerun()
+      
+if st.form_submit_button("Crea Fascicolo"):
+    if rag_soc and p_iva:
+        st.session_state.clienti[p_iva] = {
+            "info": {
+                "azienda": rag_soc,  # <--- Deve chiamarsi 'azienda'
+                "piva": p_iva,
+                "via": indirizzo_via,
+                "civico": indirizzo_civico,
+                "cap": indirizzo_cap,
+                "comune": indirizzo_comune,
+                "provincia": indirizzo_prov,
+                "settore": settore,
+                "referente": referente,
+                "dimensione": dimensione
+            },
+            "assessments": []
+        }
+        st.session_state.current_piva = p_iva
+        st.session_state.page = "Questionario"
+        st.rerun()
             else:
                 st.error("Ragione Sociale e P.IVA sono obbligatori.")
 
@@ -254,13 +254,22 @@ elif st.session_state.page == "Valutazione":
     # Nuova riga per indirizzo
     st.caption(f"📍 Sede: {cl['info']['via']} {cl['info']['civico']}, {cl['info']['cap']} - {cl['info']['comune']} ({cl['info']['provincia']})")
     piva = st.session_state.current_piva
-    if not piva or not st.session_state.clienti[piva]['assessments']:
-        st.warning("Nessun assessment disponibile."); st.stop()
-    
+    if not piva or piva not in st.session_state.clienti:
+        st.warning("Seleziona un cliente valido in Anagrafica.")
+        st.stop()
+        
     cl = st.session_state.clienti[piva]
-    ass = cl['assessments'][-1]
+    info = cl.get('info', {}) # Recupera il dizionario info in sicurezza
     
-    st.title(f"📊 Report Strategico: {cl['info']['azienda']}")
+    # Visualizzazione sicura dei dati
+    nome_azienda = info.get('azienda', 'Azienda non definita')
+    st.title(f"📊 Report Strategico: {nome_azienda}")
+    
+    # Mostra l'indirizzo solo se i campi esistono
+    if 'via' in info:
+        st.caption(f"📍 Sede: {info.get('via')} {info.get('civico')}, {info.get('cap')} - {info.get('comune')} ({info.get('provincia')})")
+    else:
+        st.caption(f"📍 Settore: {info.get('settore', 'Non specificato')}")
     
     # Grafico Radar
     categories = list(ass['punteggi'].keys())
