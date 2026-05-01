@@ -30,20 +30,18 @@ with st.sidebar.expander("Anagrafica Cliente", expanded=True):
     settore = st.sidebar.selectbox("Settore di appartenenza", list(BENCHMARKS.keys()))
     regione = st.sidebar.selectbox("Sede Operativa", ["Lombardia", "Altra Regione"])
 
-st.sidebar.subheader("Valutazione Gap (1=Pessimo, 5=Eccellente)")
+st.sidebar.subheader("Valutazione Gap (1=Critico, 5=Eccellente)")
 scores = []
 for cat in CATEGORIES:
     score = st.sidebar.slider(f"{cat}", 1.0, 5.0, 3.0, 0.5)
     scores.append(score)
 
-note_commerciale = st.sidebar.text_area("Note del commerciale (es. obiettivi, clima, criticità)")
+note_commerciale = st.sidebar.text_area("Note del commerciale (obiettivi, clima, criticità)")
 
 # --- LOGICA GRAFICA ---
-st.title(f"Analisi Strategica: {nome_azienda}")
-st.write(f"Confronto tra il profilo di **{nome_azienda}** e il benchmark medio del settore **{settore}**.")
+st.title(f"Analisi Strategica: {nome_azienda if nome_azienda else 'Nuovo Cliente'}")
 
 fig = go.Figure()
-
 fig.add_trace(go.Scatterpolar(
     r=BENCHMARKS[settore],
     theta=CATEGORIES,
@@ -52,7 +50,6 @@ fig.add_trace(go.Scatterpolar(
     line_color='gray',
     opacity=0.5
 ))
-
 fig.add_trace(go.Scatterpolar(
     r=scores,
     theta=CATEGORIES,
@@ -60,64 +57,51 @@ fig.add_trace(go.Scatterpolar(
     name='Profilo Azienda',
     line_color='#1f77b4'
 ))
-
 fig.update_layout(
     polar=dict(radialaxis=dict(visible=True, range=[0, 5])),
     showlegend=True,
     height=600
 )
-
 st.plotly_chart(fig, use_container_width=True)
 
 # --- LOGICA AI GENERATIVA ---
 if st.button("Genera Analisi Strategica NextaHub"):
-    if not nome_azienda or nome_azienda == "Ragione Sociale":
-        st.error("Inserisci il nome dell'azienda!")
+    if not nome_azienda:
+        st.error("Per favore, inserisci la Ragione Sociale dell'azienda.")
+    elif "GEMINI_API_KEY" not in st.secrets:
+        st.error("Chiave API non trovata! Inseriscila nei Secrets di Streamlit come GEMINI_API_KEY.")
     else:
         try:
-            if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-else:
-    st.error("Chiave non trovata nei Secrets. Assicurati di averla inserita come GEMINI_API_KEY")
-    st.stop()
+            # Configurazione IA
+            genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
             model = genai.GenerativeModel('gemini-1.5-flash')
             
-            # IL "CERVELLO" DI NEXTAHUB (Basato sulla tua esperienza)
+            # PROMPT STRATEGICO (Il tuo metodo di vendita)
             context = f"""
-            Sei il Senior Fractional Manager di NextaHub con 20 anni di esperienza. 
-            L'azienda cliente si chiama {nome_azienda}, opera nel settore {settore} ed è in {regione}.
+            Sei il Senior Advisor di NextaHub con 20 anni di esperienza nella consulenza aziendale.
+            Analizza l'azienda {nome_azienda} ({settore}, {regione}).
             
-            IL TUO OBIETTIVO:
-            Analizza i gap tra i punteggi dell'azienda e il benchmark. Traduci i punteggi bassi in soluzioni NextaHub.
-            
-            LOGICA DEI SERVIZI (LA TUA CASSETTA DEGLI ATTREZZI):
-            1. Se 'Sviluppo Competenze' o 'Gestione HR' sono bassi: Proponi Formazione Specialistica e Finanziata (Fondi Interpro. e se Lombardia 'Formare per Assumere').
-            2. Se 'Finanza' è basso: Spingi su Finanza Agevolata, Bandi e Crediti d'Imposta.
-            3. Se 'Protezione Legale' o 'Sicurezza' sono bassi: Trattali come OBBLIGHI urgenti (GDPR, 231, 81/08, RSPP, Whistleblowing).
-            4. Se 'ESG' è basso: Proponi Assessment ESG, Bilancio Sostenibilità, Energy Manager e Welfare.
-            5. Se 'Standard/Qualità' è basso: Proponi ISO e SOA (SOA solo se Edilizia/Impianti).
-            6. Se 'Digitalizzazione' è basso: Proponi Software, AI dedicata e Perizie 4.0/5.0.
+            LOGICA DI ANALISI:
+            1. TRATTA GLI OBBLIGHI COME TALI: Se 'Protezione Legale' o 'Sicurezza' hanno score bassi, evidenzia le responsabilità civili/penali (GDPR, 231, 81/08).
+            2. LEVA ESG: Collega l'ESG a Certificazioni ISO, Welfare (Social) e Bilancio di Sostenibilità.
+            3. EFFICIENZA ENERGETICA: Se i costi sono alti, proponi l'Ingegnere Ambientale/Energy Manager di Nexta.
+            4. CROSS-SELLING FINANZIATO: Spiega come la Formazione Finanziata (es. Fondi Interpro o Bandi Lombardia) possa finanziare consulenze tecniche.
+            5. MODALITÀ DI ACQUISTO: Suggerisci esplicitamente se il cliente è adatto a:
+               - ENTRY (singola commessa)
+               - ELITE (canone mensile con tecnico/commerciale dedicato)
+               - FLEX (pacchetto prepagato a scalare).
 
-            STRATEGIA COMMERCIALE:
-            - Spiega come la 'Formazione Finanziata' può coprire i costi di altri servizi (es. ISO o Welfare).
-            - Suggerisci una delle 3 modalità di acquisto:
-                * ENTRY: Per un solo bisogno specifico.
-                * ELITE: Canone mensile per un presidio costante (Fractional Manager).
-                * FLEX: Pacchetto prepagato a scalare per molti investimenti.
-            
-            Tono: Professionale, autorevole, orientato alla protezione dell'imprenditore.
+            FORMATO: Report professionale con punti chiave e Roadmap d'azione.
             """
             
-            input_data = f"Dati diagnosi: {dict(zip(CATEGORIES, scores))}. Note: {note_commerciale}"
+            input_prompt = f"Dati Diagnostici: {dict(zip(CATEGORIES, scores))}. Note: {note_commerciale}"
             
-            with st.spinner("L'AI di NextaHub sta elaborando la strategia..."):
-                response = model.generate_content(context + "\n\n" + input_data)
+            with st.spinner("L'intelligenza artificiale NextaHub sta elaborando la strategia..."):
+                response = model.generate_content(context + "\n\n" + input_prompt)
+                st.success("Analisi Completata con Successo!")
+                st.markdown(response.text)
                 
-            st.success("Analisi Completata")
-            st.markdown(response.text)
-            
-            # Footer per il PDF
-            st.download_button("Scarica Report (Copia Testo)", response.text, file_name=f"Analisi_{nome_azienda}.txt")
-            
+                st.download_button("Scarica Testo Report", response.text, file_name=f"Report_{nome_azienda}.txt")
+                
         except Exception as e:
-            st.error("Errore: Verifica che la API Key sia corretta nei Secrets di Streamlit.")
+            st.error(f"Errore tecnico durante la generazione: {str(e)}")
