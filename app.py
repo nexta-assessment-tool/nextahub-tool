@@ -1,36 +1,23 @@
 import streamlit as st
 import plotly.graph_objects as go
-import google.generativeai as genai
 from datetime import datetime
 
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="NextaHub Strategic Suite", layout="wide", initial_sidebar_state="expanded")
 
-# --- CSS PER LA STAMPA (Ottimizzato per PDF dal browser) ---
+# --- CSS PER LA STAMPA ---
 st.markdown("""
     <style>
     @media print {
-        [data-testid="stSidebar"], 
-        header, 
-        footer, 
-        .stButton, 
-        [data-testid="stToolbar"],
-        .stTabs [data-baseweb="tab-list"] {
+        [data-testid="stSidebar"], header, footer, .stButton, [data-testid="stToolbar"], .stTabs [data-baseweb="tab-list"] {
             display: none !important;
         }
-        .main .block-container {
-            padding: 1rem !important;
-            margin: 0 !important;
-            max-width: 100% !important;
-        }
-        .stPlotlyChart {
-            page-break-inside: avoid;
-        }
+        .main .block-container { padding: 1rem !important; max-width: 100% !important; }
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- DATABASE BENCHMARK (17 Settori) ---
+# --- DATABASE BENCHMARK ---
 BENCHMARK_DATI = {
     "Agroalimentare (Food & Beverage)": {"Strategia & Controllo": 3.4, "Digitalizzazione": 3.0, "Gestione HR": 3.1, "Finanza & Investimenti": 3.2, "Sostenibilità (ESG)": 3.8, "Protezione Legale": 3.5, "Sicurezza sul Lavoro": 4.2, "Standard & Qualità": 4.5, "Sviluppo Competenze": 3.0},
     "Moda e Tessile (Fashion & Luxury)": {"Strategia & Controllo": 3.6, "Digitalizzazione": 3.8, "Gestione HR": 3.5, "Finanza & Investimenti": 3.4, "Sostenibilità (ESG)": 4.0, "Protezione Legale": 4.2, "Sicurezza sul Lavoro": 3.5, "Standard & Qualità": 4.0, "Sviluppo Competenze": 3.7},
@@ -127,7 +114,7 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- LOGICA APPLICATIVA ---
+# --- STATO DELL'APPLICAZIONE ---
 if 'page' not in st.session_state: st.session_state.page = "Anagrafica"
 if 'clienti' not in st.session_state: st.session_state.clienti = {}
 if 'current_piva' not in st.session_state: st.session_state.current_piva = None
@@ -138,87 +125,115 @@ LOGO_URL = "https://www.nextahub.it/wp-content/uploads/2023/05/logo-nextahub.png
 with st.sidebar:
     st.image(LOGO_URL, width=180)
     st.markdown("---")
-    if st.button("🏠 Anagrafica", use_container_width=True): st.session_state.page = "Anagrafica"
-    if st.button("📝 Assessment", use_container_width=True): st.session_state.page = "Questionario"
-    if st.button("📊 Risultati", use_container_width=True): st.session_state.page = "Valutazione"
+    if st.button("🏠 1. Anagrafica Cliente", use_container_width=True): st.session_state.page = "Anagrafica"
+    if st.button("📝 2. Nuovo Assessment", use_container_width=True): st.session_state.page = "Questionario"
+    if st.button("📊 3. Report & Analisi AI", use_container_width=True): st.session_state.page = "Valutazione"
+    if st.button("📁 4. Archivio Storico", use_container_width=True): st.session_state.page = "Archivio"
     st.markdown("---")
     if st.session_state.current_piva:
-        st.caption(f"Cliente attivo: {st.session_state.current_piva}")
+        st.info(f"Cliente: {st.session_state.current_piva}")
 
-# --- PAGINE ---
+# --- PAGINA 1: ANAGRAFICA ---
 if st.session_state.page == "Anagrafica":
-    st.title("🏢 Setup Cliente")
-    with st.form("anag"):
+    st.title("🏢 Setup Anagrafica Cliente")
+    with st.form("anag_full"):
         c1, c2 = st.columns(2)
         with c1:
             azienda = st.text_input("Ragione Sociale")
-            piva = st.text_input("P.Iva")
+            piva = st.text_input("Partita IVA")
+            indirizzo = st.text_input("Via e Civico")
+            cap = st.text_input("CAP", max_chars=5)
         with c2:
-            settore = st.selectbox("Settore di riferimento", list(BENCHMARK_DATI.keys()))
-            sede = st.text_input("Sede")
-        if st.form_submit_button("Salva"):
+            citta = st.text_input("Comune")
+            provincia = st.text_input("Provincia (Sigla)", max_chars=2).upper()
+            regione = st.selectbox("Regione", ["Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia-Romagna", "Friuli-Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche", "Molise", "Piemonte", "Puglia", "Sardegna", "Sicilia", "Toscana", "Trentino-Alto Adige", "Umbria", "Valle d'Aosta", "Veneto"])
+            settore = st.selectbox("Settore", list(BENCHMARK_DATI.keys()))
+        
+        if st.form_submit_button("Salva e Inizia"):
             if azienda and piva:
                 st.session_state.current_piva = piva
-                st.session_state.clienti[piva] = {"info": {"azienda": azienda, "settore": settore, "sede": sede}, "punteggi": {}}
+                st.session_state.clienti[piva] = {
+                    "info": {"azienda": azienda, "piva": piva, "indirizzo": indirizzo, "cap": cap, "citta": citta, "provincia": provincia, "regione": regione, "settore": settore},
+                    "assessments": []
+                }
                 st.session_state.page = "Questionario"
                 st.rerun()
+            else:
+                st.error("Inserire Ragione Sociale e P.Iva.")
 
+# --- PAGINA 2: QUESTIONARIO ---
 elif st.session_state.page == "Questionario":
     piva = st.session_state.current_piva
-    if not piva: st.warning("Inserisci anagrafica"); st.stop()
+    if not piva: st.warning("Configura l'anagrafica."); st.stop()
     
-    st.title(f"📝 Valutazione: {st.session_state.clienti[piva]['info']['azienda']}")
-    
+    st.title(f"📝 Assessment: {st.session_state.clienti[piva]['info']['azienda']}")
     tabs = st.tabs(list(DOMANDE_MATRICE.keys()))
     temp_scores = {}
-    
+
     for i, area in enumerate(DOMANDE_MATRICE.keys()):
         with tabs[i]:
             st.subheader(area)
             area_vals = []
             for j, (domanda, opzioni) in enumerate(DOMANDE_MATRICE[area]):
-                # Usiamo radio per rendere visibili tutte le risposte descrittive
-                scelta = st.radio(
-                    f"**{j+1}. {domanda}**",
-                    options=[1, 2, 3, 4, 5],
-                    format_func=lambda x: f"{x} - {opzioni[x-1]}",
-                    key=f"{area}_{j}"
-                )
+                scelta = st.radio(f"**{j+1}. {domanda}**", options=[1, 2, 3, 4, 5], format_func=lambda x: f"{x} - {opzioni[x-1]}", key=f"{piva}_{area}_{j}")
                 area_vals.append(scelta)
             temp_scores[area] = sum(area_vals) / 6
-    
-    if st.button("Concludi e Vedi Report", use_container_width=True):
-        st.session_state.clienti[piva]['punteggi'] = temp_scores
+
+    if st.button("Finalizza Assessment", use_container_width=True):
+        nuovo = {"data": datetime.now().strftime("%d/%m/%Y %H:%M"), "punteggi": temp_scores, "analisi_ai": ""}
+        st.session_state.clienti[piva]['assessments'].append(nuovo)
         st.session_state.page = "Valutazione"
         st.rerun()
 
+# --- PAGINA 3: VALUTAZIONE ---
 elif st.session_state.page == "Valutazione":
     piva = st.session_state.current_piva
-    if not piva or not st.session_state.clienti[piva]['punteggi']: st.warning("Mancano dati"); st.stop()
+    if not piva or not st.session_state.clienti[piva]['assessments']: st.warning("Nessun dato."); st.stop()
     
-    dati = st.session_state.clienti[piva]
+    cl = st.session_state.clienti[piva]
+    ass = cl['assessments'][-1]
     
-    # --- HEADER REPORT ---
-    col_l, col_r = st.columns([1, 2])
-    with col_l: st.image(LOGO_URL, width=200)
-    with col_r:
-        st.markdown(f"## REPORT STRATEGICO AZIENDALE")
-        st.markdown(f"**Azienda:** {dati['info']['azienda']} | **Settore:** {dati['info']['settore']}")
-        st.markdown(f"**Data Analisi:** {datetime.now().strftime('%d/%m/%Y')}")
+    # Header Stampa
+    c1, c2 = st.columns([1, 2])
+    with c1: st.image(LOGO_URL, width=200)
+    with c2:
+        st.markdown(f"## REPORT STRATEGICO\n**{cl['info']['azienda']}** | {cl['info']['citta']} ({cl['info']['provincia']})")
+        st.caption(f"Settore: {cl['info']['settore']} | Data: {ass['data']}")
 
-    st.markdown("---")
-
-    # --- GRAFICO ---
-    categorie = list(dati['punteggi'].keys())
+    # Radar
+    categorie = list(ass['punteggi'].keys())
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=list(dati['punteggi'].values()), theta=categorie, fill='toself', name='Azienda', line_color='#e63946'))
-    fig.add_trace(go.Scatterpolar(r=[BENCHMARK_DATI[dati['info']['settore']][c] for c in categorie], theta=categorie, name='Benchmark', line_color='gray', line_dash='dash'))
-    
+    fig.add_trace(go.Scatterpolar(r=list(ass['punteggi'].values()), theta=categorie, fill='toself', name='Azienda', line_color='#e63946'))
+    fig.add_trace(go.Scatterpolar(r=[BENCHMARK_DATI[cl['info']['settore']][c] for c in categorie], theta=categorie, name='Benchmark Settore', line_color='gray', line_dash='dash'))
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), height=600)
     st.plotly_chart(fig, use_container_width=True)
 
-    # --- TABELLA DETTAGLI ---
-    st.subheader("Dettaglio Punteggi")
-    cols = st.columns(3)
-    for idx, (cat, val) in enumerate(dati['punteggi'].items()):
-        cols[idx%3].metric(cat, f"{val:.1f} / 5", delta=f"{val - BENCHMARK_DATI[dati['info']['settore']][cat]:.1f} vs Bench")
+    # Analisi AI
+    st.markdown("---")
+    st.subheader("🤖 Analisi Strategica Agente AI")
+    if not ass['analisi_ai']:
+        if st.button("Attiva Agente AI (Analisi Territoriale)"):
+            # Simulazione prompt AI
+            info = cl['info']
+            analisi = f"L'azienda operante a {info['citta']} nel settore {info['settore']} mostra un forte scostamento in {min(ass['punteggi'], key=ass['punteggi'].get)}. Data la posizione in {info['regione']}, si consiglia di monitorare i competitor locali e investire in digitalizzazione."
+            ass['analisi_ai'] = analisi
+            st.rerun()
+    else:
+        st.info(ass['analisi_ai'])
+
+# --- PAGINA 4: ARCHIVIO ---
+elif st.session_state.page == "Archivio":
+    st.title("📁 Archivio Storico")
+    if not st.session_state.clienti:
+        st.info("Nessun cliente in archivio.")
+    else:
+        for p, dati in st.session_state.clienti.items():
+            with st.expander(f"🏢 {dati['info']['azienda']} (PI: {p})"):
+                st.write(f"Sede: {dati['info']['regione']} | Settore: {dati['info']['settore']}")
+                for i, revisione in enumerate(dati['assessments']):
+                    col_x, col_y = st.columns([4, 1])
+                    col_x.write(f"Analisi del {revisione['data']}")
+                    if col_y.button("Apri", key=f"open_{p}_{i}"):
+                        st.session_state.current_piva = p
+                        st.session_state.page = "Valutazione"
+                        st.rerun()
