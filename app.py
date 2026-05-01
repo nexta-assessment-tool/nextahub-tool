@@ -107,7 +107,7 @@ DOMANDE_MATRICE = {
     ]
 }
 
-# --- 4. MOTORE DI CONSULENZA AI NEXTAHUB ---
+# --- 4. MOTORE DI CONSULENZA AI NEXTAHUB (VERSIONE VENDITA AGGRESSIVA) ---
 def analizza_con_gemini(dati_cliente, punteggi):
     try:
         validi = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
@@ -115,21 +115,38 @@ def analizza_con_gemini(dati_cliente, punteggi):
         model = genai.GenerativeModel(scelto)
         
         prompt = f"""
-        Agisci come Senior Partner e Consultant di NextaHub.
+        Agisci come Senior Partner e Strategic Consultant di NextaHub. Il tuo obiettivo è convertire questa analisi in un mandato di consulenza.
+        
         CLIENTE: {dati_cliente['azienda']} | SETTORE: {dati_cliente['settore']} | REGIONE: {dati_cliente['regione']}
-        COMPILATORE (NextaHub): {dati_cliente['commerciale']}
+        COMMERCIALE DI RIFERIMENTO: {dati_cliente['commerciale']}
 
-        DATI ASSESSMENT: {json.dumps(punteggi, indent=2)}
+        DATI ASSESSMENT (Score da 1 a 5):
+        {json.dumps(punteggi, indent=2)}
 
-        STRUTTURA REPORT:
-        1. TABELLA COMPARATIVA SCORE VS BENCHMARK (Regionale/Settoriale).
-        2. ANALISI GAP E SOLUZIONI NEXTAHUB (Divise per urgenza, spiegando benefici economici/legali).
-        3. ROADMAP DI TRASFORMAZIONE (12-24 mesi in 3 fasi).
-        4. RESOCONTO CONCLUSIVO (Call to Action su 2/3 servizi prioritari, usando la Finanza Agevolata come leva per finanziare gli altri).
+        STRUTTURA DEL REPORT (Segui rigorosamente):
 
-        FIRMA: In fondo al documento scrivi "Analisi a cura di: {dati_cliente['commerciale']} - Senior Consultant NextaHub"
+        1. ANALISI COMPARATIVA E BENCHMARK
+           - Crea una tabella: Area | Score Azienda | Benchmark Regionale/Settoriale | Gap.
+           - Spiega che il benchmark per il settore {dati_cliente['settore']} in {dati_cliente['regione']} richiede standard elevati per restare competitivi.
+
+        2. ANALISI DEI GAP E SOLUZIONI STRATEGICHE
+           - Commenta i 3 gap più gravi.
+           - Per ogni gap, spiega il RISCHIO di non intervenire (sanzioni, perdita di mercato, inefficienza finanziaria) e il BENEFICIO del colmarlo.
+           - Associa a ogni gap una soluzione NextaHub (es. Dashboard KPI, Modello 231, Certificazioni ISO, Welfare Aziendale).
+
+        3. ROADMAP DI TRASFORMAZIONE (12-24 MESI)
+           - Dividi il percorso in 3 fasi temporali chiare.
+
+        4. PROPOSTA OPERATIVA NEXTAHUB (IL "GANCIO" COMMERCIALE)
+           - Identifica MAX 3 SERVIZI prioritari.
+           - UNO di questi deve essere un servizio di FINANZA (es. Finanza Agevolata, Transizione 5.0, Formazione Finanziata tramite Fondi Interprofessionali).
+           - Spiega chiaramente come il servizio di FINANZA permetta di recuperare liquidità o coprire i costi per finanziare gli altri due servizi (es. "Usiamo la Formazione Finanziata per coprire i costi del personale necessari a ottenere la certificazione ISO").
+
+        FIRMA: In fondo scrivi "Analisi a cura di: {dati_cliente['commerciale']} - Senior Consultant NextaHub"
         """
-        return model.generate_content(prompt).text
+        
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
         return f"❌ Errore AI: {str(e)}"
 
