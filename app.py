@@ -4,17 +4,19 @@ import google.generativeai as genai
 from datetime import datetime
 
 # --- 1. CONFIGURAZIONE API E PAGINA ---
-# Si consiglia di usare st.secrets per la produzione
-API_KEY = "AIzaSyBDVGaDPzABpySSiKIkktpLisvjRcMiSqg"
+st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
 
-try:
-    genai.configure(api_key=API_KEY)
-except Exception as e:
-    st.error(f"Errore configurazione Gemini: {e}")
+# Sistema di caricamento sicuro della API Key
+if "GOOGLE_API_KEY" in st.secrets:
+    try:
+        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    except Exception as e:
+        st.error(f"Errore configurazione Gemini: {e}")
+else:
+    st.error("⚠️ API Key non trovata! Configura 'GOOGLE_API_KEY' nei Secrets di Streamlit.")
+    st.stop() # Blocca l'esecuzione se la chiave manca
 
 LOGO_URL = "https://nextahub.it/wp-content/uploads/2026/02/Nexta_Logo_Def_PiccoloHUB.png"
-
-st.set_page_config(page_title="NextaHub Strategic Suite v3.0", layout="wide")
 
 # --- 2. DATABASE BENCHMARK (17 SETTORI) ---
 BENCHMARK_DATI = {
@@ -129,11 +131,9 @@ DOMANDE_MATRICE = {
 # --- 5. AGENTE AI AGNOSTICO ---
 def genera_report_ai(punteggi, info, benchmark):
     try:
-        # Recupera modelli disponibili per evitare errori 404
         available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
         
-        # Selezione gerarchica del modello
-        selected_model = "models/gemini-pro" # Default sicuro
+        selected_model = "models/gemini-pro" 
         for target in ["models/gemini-1.5-flash", "models/gemini-1.5-pro"]:
             if target in available_models:
                 selected_model = target
